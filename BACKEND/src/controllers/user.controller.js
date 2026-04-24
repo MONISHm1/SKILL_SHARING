@@ -32,12 +32,12 @@ const generateAccessAndRefreshTokens = async (userId) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { username, email, password, location, coordinates } = req.body;
 
-  // ✅ VALIDATION
+  
   if ([username, email, password, location].some(field => !field || field.trim() === "")) {
     throw new ApiError(400, "Username, email, password and location are required");
   }
 
-  // ✅ CHECK EXISTING USER
+  
   const existedUser = await User.findOne({
     $or: [{ email }, { username }],
   });
@@ -46,7 +46,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User already exists");
   }
 
-  // ✅ HANDLE COORDINATES
+
   let geoLocationData;
 
   if (
@@ -55,40 +55,39 @@ const registerUser = asyncHandler(async (req, res) => {
     coordinates.coordinates.length === 2 &&
     coordinates.coordinates.every(coord => typeof coord === "number")
   ) {
-    // ✅ If frontend already sends valid coordinates
+   
     geoLocationData = coordinates;
   } else {
-    // ✅ Get from OpenCage
-    // 🔥 FIX: use array destructuring
+ 
+   
 const [lng, lat] = await getCoordinates(location);
 
 console.log("COORDINATES:", lng, lat);
 
-// 🔥 FIX: check properly
+
 if (lat == null || lng == null) {
   throw new ApiError(500, "Invalid coordinates from geocoder");
 }
 
     geoLocationData = {
       type: "Point",
-      coordinates: [lng, lat], // 🔥 ALWAYS [lng, lat]
+      coordinates: [lng, lat], 
     };
   }
 
-  // ✅ CREATE USER
+
   const user = await User.create({
     username: username.toLowerCase(),
     email,
     password,
 
-    // ✅ TEXT LOCATION
     location: location,
 
-    // ✅ GEO LOCATION
+   
     geoLocation: geoLocationData,
   });
 
-  // ✅ REMOVE SENSITIVE DATA
+
   const createdUser = await User.findById(user._id).select("-password -refreshToken");
 
   if (!createdUser) {
@@ -236,7 +235,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
 const getCurrentUser = asyncHandler(async (req, res) => {
   
-  // 🔥 CHANGE: fetch full user from DB
+ 
   const user = await User.findById(req.user._id).select("-password");
 
   return res.status(200).json({

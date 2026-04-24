@@ -8,26 +8,25 @@ import { ApiError } from "../utils/ApiError.js";
 
 
 export const createSession = asyncHandler(async (req, res) => {
-  const { skillId, date, time, mode } = req.body; // 🔥 CHANGE: removed location
-
-  // 🚨 VALIDATION
+  const { skillId, date, time, mode } = req.body; 
+  // VALIDATION
   if (!skillId || !date || !time || !mode) {
     throw new ApiError(400, "All required fields must be provided");
   }
 
-  // ✅ MODE VALIDATION
+  //  MODE VALIDATION
   const allowedModes = ["Online", "Offline"];
   if (!allowedModes.includes(mode)) {
     throw new ApiError(400, "Invalid mode");
   }
 
-  // 🔍 FIND SKILL
+  //  FIND SKILL
   const skill = await Skill.findById(skillId);
   if (!skill) {
     throw new ApiError(404, "Skill not found");
   }
 
-  // 🚫 PREVENT DUPLICATE
+  //  PREVENT DUPLICATE
   const existingSession = await Session.findOne({
     learner: req.user._id,
     skill: skillId,
@@ -39,7 +38,7 @@ export const createSession = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Session already booked");
   }
 
-  // ✅ CREATE SESSION
+  //  CREATE SESSION
   const session = await Session.create({
     learner: req.user._id,
     mentor: skill.mentor,
@@ -48,8 +47,8 @@ export const createSession = asyncHandler(async (req, res) => {
     time,
     mode,
 
-    location: null,        // 🔥 CHANGE: always null initially
-    meetingLink: null,     // 🔥 CHANGE: always null
+    location: null,       
+    meetingLink: null,     
 
     status: "Pending",
   });
@@ -110,13 +109,13 @@ export const updateSessionStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   if (!status) {
-    throw new ApiError(400, "Status is required"); // 🔥 FIXED
+    throw new ApiError(400, "Status is required"); 
   }
 
   const allowedStatus = ["Accepted", "Rejected", "Completed"];
 
   if (!allowedStatus.includes(status)) {
-    throw new ApiError(400, "Invalid status"); // 🔥 FIXED
+    throw new ApiError(400, "Invalid status"); 
   }
 
   const session = await Session.findById(id);
@@ -170,7 +169,7 @@ export const addMeetingLink = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   if (!meetingLink) {
-    throw new ApiError(400, "Meeting link is required"); // 🔥 FIXED
+    throw new ApiError(400, "Meeting link is required"); 
   }
 
   const session = await Session.findById(id);
@@ -179,7 +178,7 @@ export const addMeetingLink = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Session not found");
   }
 
-  // 🔥 NEW: only after accept
+  
   if (session.status !== "Accepted") {
     throw new ApiError(400, "Accept session first");
   }
@@ -204,7 +203,7 @@ export const addLocation = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   if (!location) {
-    throw new ApiError(400, "Location is required"); // 🔥 FIXED
+    throw new ApiError(400, "Location is required"); 
   }
 
   const session = await Session.findById(id);
@@ -213,7 +212,7 @@ export const addLocation = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Session not found");
   }
 
-  // 🔥 NEW: only after accept
+  
   if (session.status !== "Accepted") {
     throw new ApiError(400, "Accept session first");
   }

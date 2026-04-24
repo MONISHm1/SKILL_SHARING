@@ -10,14 +10,14 @@ const conversationSchema = new mongoose.Schema(
       },
     ],
 
-    // 🔥 Link chat to skill (NO CHANGE)
+
     skill: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Skill",
       required: false,
     },
 
-    // 🔥 Last message (NO CHANGE)
+ 
     lastMessage: {
       text: {
         type: String,
@@ -34,13 +34,11 @@ const conversationSchema = new mongoose.Schema(
       },
     },
 
-    // 🔥 Last message time (NO CHANGE)
     lastMessageAt: {
       type: Date,
       default: Date.now,
     },
 
-    // 🔥 Unread count (NO CHANGE)
     unreadCounts: {
       type: Map,
       of: Number,
@@ -50,28 +48,17 @@ const conversationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// =========================================
-// ✅ SAFE INDEXES (KEEP)
-// =========================================
-
-// Fast lookup
 conversationSchema.index({ members: 1}
 );
 
-// Sort by latest
 conversationSchema.index({ lastMessageAt: -1 });
 
-// =========================================
-// ❌ REMOVED BROKEN INDEX
-// =========================================
+
 // conversationSchema.index(
 //   { members: 1, skill: 1 },
 //   { unique: true, sparse: true }
 // );
 
-// =========================================
-// ✅ PREVENT MODEL OVERWRITE (KEEP)
-// =========================================
 const Conversation =
   mongoose.models.Conversation ||
   mongoose.model("Conversation", conversationSchema);

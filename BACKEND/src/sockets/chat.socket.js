@@ -2,7 +2,7 @@ import { Server } from "socket.io";
 
 let io;
 
-// 🔥 Store online users
+
 const onlineUsers = new Map();
 
 export const initSocket = (server) => {
@@ -17,7 +17,6 @@ export const initSocket = (server) => {
   io.on("connection", (socket) => {
     console.log(`⚡ User Connected: ${socket.id}`);
 
-    // ✅ JOIN USER
     socket.on("join", ({ userId, username }) => {
       if (!userId) return;
 
@@ -26,12 +25,10 @@ export const initSocket = (server) => {
         username: username || "User",
       });
 
-      // 🔥 Join personal room (future-proof)
       socket.join(userId);
 
       console.log(`🟢 ${username} is online`);
 
-      // 🔥 Broadcast online users
       io.emit(
         "onlineUsers",
         Array.from(onlineUsers.entries()).map(([id, data]) => ({
@@ -41,7 +38,7 @@ export const initSocket = (server) => {
       );
     });
 
-    // ✅ SEND MESSAGE (IMPROVED)
+  
     socket.on("sendMessage", (data) => {
       const { senderId, receiverId, text, conversationId } = data;
 
@@ -54,20 +51,20 @@ export const initSocket = (server) => {
         createdAt: new Date(),
       };
 
-      // 🔥 SEND TO RECEIVER
+    
       const receiver = onlineUsers.get(receiverId);
       if (receiver?.socketId) {
         io.to(receiver.socketId).emit("receiveMessage", messagePayload);
       }
 
-      // 🔥 ALSO SEND BACK TO SENDER (IMPORTANT FIX)
+   
       const sender = onlineUsers.get(senderId);
       if (sender?.socketId) {
         io.to(sender.socketId).emit("receiveMessage", messagePayload);
       }
     });
 
-    // ✅ TYPING
+
     socket.on("typing", ({ senderId, receiverId }) => {
       const receiver = onlineUsers.get(receiverId);
       if (receiver?.socketId) {
@@ -75,7 +72,7 @@ export const initSocket = (server) => {
       }
     });
 
-    // ✅ STOP TYPING
+   
     socket.on("stopTyping", ({ senderId, receiverId }) => {
       const receiver = onlineUsers.get(receiverId);
       if (receiver?.socketId) {
@@ -83,7 +80,7 @@ export const initSocket = (server) => {
       }
     });
 
-    // ❌ DISCONNECT
+   
     socket.on("disconnect", () => {
       console.log(`🔴 User Disconnected: ${socket.id}`);
 
@@ -106,7 +103,7 @@ export const initSocket = (server) => {
   });
 };
 
-// ✅ ACCESS IO
+
 export const getIO = () => {
   if (!io) throw new Error("Socket.io not initialized");
   return io;

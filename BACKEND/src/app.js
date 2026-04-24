@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 
-// ✅ CORS CONFIG (IMPORTANT FOR CHAT + AUTH)
+
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN || "http://localhost:5173",
@@ -12,24 +12,24 @@ app.use(
   })
 );
 
-// ✅ BODY PARSING
+
 app.use(express.json({ limit: "10mb" })); // reduced from 100mb (safer)
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// ✅ STATIC FILES
+
 app.use(express.static("public"));
 
-// ✅ COOKIES
+//  COOKIES
 app.use(cookieParser());
 
-// ✅ OPTIONAL: REQUEST LOGGER (VERY USEFUL)
+
 app.use((req, res, next) => {
   console.log(`➡️ ${req.method} ${req.url}`);
   next();
 });
 
 
-// ================= ROUTES =================
+
 
 // import routes
 import userRouter from "./routes/user.routes.js";
@@ -41,7 +41,7 @@ import requestRoutes from "./routes/request.routes.js";
 import exchangeRoutes from "./routes/exchange.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 
-// ✅ KEEP YOUR EXISTING ROUTES (NO CHANGE)
+
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/skills", skillRouter);
@@ -49,8 +49,7 @@ app.use("/api/sessions", sessionRouter);
 app.use("/api/reviews", reviewRouter);
 app.use("/api/requests", requestRoutes);
 app.use("/api/exchange", exchangeRoutes);
-app.use("/api/chat", chatRoutes); // ✅ CHAT ROUTES
-
+app.use("/api/chat", chatRoutes); 
 
 // ================= HEALTH CHECK =================
 

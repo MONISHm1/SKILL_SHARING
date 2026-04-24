@@ -16,14 +16,14 @@ export const getCoordinates = async (location) => {
       throw new Error("Location not found. Try full name like 'Bangalore, India'");
     }
 
-    // 🔥🔥 ADD THIS BLOCK HERE (VERY IMPORTANT)
+    
     const result = res.data.results[0];
 
     if (result.components.country_code !== "in") {
       throw new Error("Location must be in India");
     }
 
-    // 🔥 EXISTING CODE
+
     const { lat, lng } = result.geometry;
 
     return [lng, lat];

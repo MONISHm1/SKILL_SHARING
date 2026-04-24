@@ -7,7 +7,6 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { getCoordinates } from "../utils/geocoder.js"; // adjust path if needed
 
 
-// 🟢 ADD SKILL (MENTOR)
 export const addSkill = asyncHandler(async (req, res) => {
   const {
     skillName,
@@ -34,15 +33,15 @@ export const addSkill = asyncHandler(async (req, res) => {
     typeof arr[0] === "number" &&
     typeof arr[1] === "number";
 
-  // ✅ CASE 1: frontend coords
+ 
   if (coordinates && isValidCoords(coordinates.coordinates)) {
     coords = coordinates.coordinates;
   }
 
-  // 🔥 CHANGE: clean + validate location
+  
   else if (location && location.trim() !== "") {
     try {
-      const cleanLocation = location.trim(); // 🔥 CHANGE
+      const cleanLocation = location.trim(); 
       const geo = await getCoordinates(cleanLocation);
       coords = geo;
     } catch (err) {
@@ -50,12 +49,12 @@ export const addSkill = asyncHandler(async (req, res) => {
     }
   }
 
-  // ✅ CASE 3: fallback
+
   else if (user?.coordinates?.coordinates) {
     coords = user.coordinates.coordinates;
   }
 
-  // 🔥 FINAL SAFETY
+ 
   if (!isValidCoords(coords)) {
     throw new ApiError(400, "Unable to determine location coordinates");
   }
@@ -70,7 +69,7 @@ export const addSkill = asyncHandler(async (req, res) => {
     category,
     description,
     mode,
-    location: location?.trim(), // 🔥 CHANGE
+    location: location?.trim(), 
     coordinates: finalCoordinates,
     mentor: req.user._id,
   });
@@ -81,7 +80,7 @@ export const addSkill = asyncHandler(async (req, res) => {
 });
 
 
-// 🔵 SEARCH SKILLS (FILTER + EXPLORE)
+
 export const getSkills = asyncHandler(async (req, res) => {
   const { category, mode, search } = req.query;
 
@@ -94,8 +93,6 @@ export const getSkills = asyncHandler(async (req, res) => {
     filter.skillName = { $regex: search, $options: "i" };
   }
 
-  // ❗ Exclude own skills
-  // 🔥 CHANGE: only exclude if user exists properly
 if (req.user && req.user._id) {
   filter.mentor = { $ne: req.user._id };
 }
@@ -110,7 +107,7 @@ console.log("FILTER:", filter);
 });
 
 
-// 🟡 GET MY SKILLS
+
 export const getMySkills = asyncHandler(async (req, res) => {
   const skills = await Skill.find({
     mentor: req.user._id
@@ -120,7 +117,7 @@ export const getMySkills = asyncHandler(async (req, res) => {
 });
 
 
-// 🔴 DELETE SKILL
+
 export const deleteSkill = asyncHandler(async (req, res) => {
   const skill = await Skill.findById(req.params.id);
 
@@ -138,7 +135,6 @@ export const deleteSkill = asyncHandler(async (req, res) => {
 });
 
 
-// 🟠 UPDATE SKILL
 export const updateSkill = asyncHandler(async (req, res) => {
   const skill = await Skill.findById(req.params.id);
 
@@ -157,7 +153,7 @@ export const updateSkill = asyncHandler(async (req, res) => {
 });
 
 
-// 🔍 GET SINGLE SKILL
+
 export const getSkillById = asyncHandler(async (req, res) => {
   const skill = await Skill.findById(req.params.id);
 
@@ -173,7 +169,7 @@ export const getSkillById = asyncHandler(async (req, res) => {
 });
 
 
-// 🌍 NEARBY SKILLS (FINAL CLEAN VERSION)
+
 
 export const getNearbySkills = asyncHandler(async (req, res) => {
   const { lat, lng } = req.query;
@@ -191,7 +187,7 @@ export const getNearbySkills = asyncHandler(async (req, res) => {
 
   const userId = req.user?._id;
 
-  // 🔥 STEP 1: FETCH ALL SKILLS (LIKE EXPLORE)
+  
   const skills = await Skill.find({
     isActive: true,
     ...(userId && {
@@ -201,7 +197,7 @@ export const getNearbySkills = asyncHandler(async (req, res) => {
     .populate("mentor", "username averageRating location")
     .lean();
 
-  // 🔥 DISTANCE FUNCTION
+
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371;
 
@@ -217,11 +213,11 @@ export const getNearbySkills = asyncHandler(async (req, res) => {
     return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
   };
 
-  // 🔥 STEP 2: ADD DISTANCE (WITH FALLBACK)
+  
   const enriched = skills.map((skill) => {
     let coords = skill.coordinates?.coordinates;
 
-    // fallback from "lat, lng"
+  
     if (!coords && skill.location?.includes(",")) {
       const parts = skill.location.split(",");
       if (parts.length === 2) {
@@ -251,7 +247,7 @@ export const getNearbySkills = asyncHandler(async (req, res) => {
     };
   });
 
-  // 🔥 STEP 3: SORT ONLY (NO FILTER)
+  
   enriched.sort((a, b) => a.distance - b.distance);
 
   return res.status(200).json({

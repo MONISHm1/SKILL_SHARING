@@ -42,10 +42,9 @@ const skillSchema = new mongoose.Schema({
 
   location: {
     type: String,
-    required: true // ✅ Recommended
+    required: true 
   },
 
-  // 🌍 GEO LOCATION
   coordinates: {
   type: {
     type: String,
@@ -58,13 +57,13 @@ const skillSchema = new mongoose.Schema({
   }
 },
 
-  // 🔍 SEARCH TAGS
+  
   tags: {
     type: [String],
     default: []
   },
 
-  // ⭐ RATING
+
   averageRating: {
     type: Number,
     default: 0,
@@ -86,10 +85,10 @@ const skillSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-// 🌍 GEO INDEX
+
 skillSchema.index({ coordinates: "2dsphere" });
 
-// 🔍 TEXT SEARCH INDEX (ADVANCED 🔥)
+
 skillSchema.index({ skillName: "text", description: "text" });
 
 export default mongoose.model("Skill", skillSchema);

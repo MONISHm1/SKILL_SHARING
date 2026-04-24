@@ -4,7 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import Session from "../models/session.models.js";
 
-// 🔥 SEND REQUEST
+
 export const createExchange = asyncHandler(async (req, res) => {
   const { requestedSkillId, offeredSkillId, message } = req.body;
 
@@ -19,7 +19,7 @@ export const createExchange = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Skill not found");
   }
 
-  // ❌ Prevent self exchange
+  
   if (requestedSkill.mentor.toString() === req.user._id.toString()) {
     throw new ApiError(400, "You cannot exchange your own skill");
   }
@@ -69,7 +69,7 @@ export const updateExchangeStatus = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Exchange not found");
   }
 
-  // 🔐 Only receiver can accept/reject
+ 
   if (exchange.receiver.toString() !== req.user._id.toString()) {
     throw new ApiError(403, "Unauthorized");
   }
@@ -77,11 +77,9 @@ export const updateExchangeStatus = asyncHandler(async (req, res) => {
   exchange.status = status;
   await exchange.save();
 
-  // 🔥🔥🔥 AUTO SESSION CREATION STARTS HERE
   if (status === "Accepted") {
 
 
-    // ✅ Prevent duplicate session
     const existingSession = await Session.findOne({
       learner: exchange.requester,
       mentor: exchange.receiver,
@@ -94,8 +92,8 @@ export const updateExchangeStatus = asyncHandler(async (req, res) => {
         mentor: exchange.receiver,          // who teaches
         skill: exchange.requestedSkill._id, // requested skill
 
-        date: new Date(),        // 🔥 default (you can improve later)
-        time: "Flexible",        // 🔥 placeholder
+        date: new Date(),        
+        time: "Flexible",        
 
         mode: exchange.requestedSkill.mode || "Online",
 
@@ -106,7 +104,7 @@ export const updateExchangeStatus = asyncHandler(async (req, res) => {
       });
     }
 
-    // 🔁 OPTIONAL: reverse session (uncomment if needed)
+
     
     await Session.create({
       learner: exchange.receiver,
@@ -118,7 +116,7 @@ export const updateExchangeStatus = asyncHandler(async (req, res) => {
       status: "Pending",
     });
   }
-  // 🔥🔥🔥 AUTO SESSION CREATION ENDS HERE
+ 
 
   res.status(200).json({
     success: true,

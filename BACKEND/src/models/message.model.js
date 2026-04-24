@@ -65,10 +65,9 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
-// ✅ INDEX
 messageSchema.index({ conversationId: 1, createdAt: 1 });
 
-// ✅ SAFE EXPORT (PREVENT CACHE ISSUE)
+
 const Message =
   mongoose.models.Message || mongoose.model("Message", messageSchema);
 

@@ -1,7 +1,7 @@
 import Request from "../models/request.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-// ✅ CREATE REQUEST
+// CREATE REQUEST
 export const createRequest = asyncHandler(async (req, res) => {
 
   const { title, description, category, mode, location } = req.body;
@@ -22,7 +22,7 @@ export const createRequest = asyncHandler(async (req, res) => {
 });
 
 
-// ✅ GET ALL REQUESTS (OTHERS ONLY)
+//  GET ALL REQUESTS (OTHERS ONLY)
 export const getRequests = asyncHandler(async (req, res) => {
 
   const requests = await Request.find({
@@ -33,7 +33,7 @@ export const getRequests = asyncHandler(async (req, res) => {
 });
 
 
-// ✅ GET MY REQUESTS
+//  GET MY REQUESTS
 export const getMyRequests = asyncHandler(async (req, res) => {
 
   const requests = await Request.find({

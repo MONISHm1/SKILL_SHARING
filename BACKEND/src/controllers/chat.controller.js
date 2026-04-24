@@ -5,7 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { getIO } from "../sockets/chat.socket.js";
 
-// 🔹 Create or get conversation
+
 export const getOrCreateConversation = asyncHandler(async (req, res) => {
   const { receiverId } = req.body;
 
@@ -19,23 +19,17 @@ export const getOrCreateConversation = asyncHandler(async (req, res) => {
 
   const userId = req.user._id;
 
-  // ✅ FIX: ALWAYS SORT MEMBERS
   const members = [userId, receiverId].map(String).sort();
 
-  // =========================================
-  // ✅ FIND EXISTING (USE SORTED ARRAY)
-  // =========================================
+
   let conversation = await Conversation.findOne({
     members: members,
   }).populate("members", "username email");
 
-  // =========================================
-  // ✅ CREATE IF NOT FOUND
-  // =========================================
   if (!conversation) {
     try {
       conversation = await Conversation.create({
-        members: members, // ✅ FIX HERE
+        members: members, 
       });
 
       conversation = await Conversation.findById(conversation._id)
@@ -45,7 +39,7 @@ export const getOrCreateConversation = asyncHandler(async (req, res) => {
       if (err.code === 11000) {
         console.log("⚠️ Duplicate detected, fetching again");
 
-        // ✅ FIX: USE SAME SORTED QUERY
+     
         conversation = await Conversation.findOne({
           members: members,
         }).populate("members", "username email");
@@ -66,7 +60,6 @@ export const getOrCreateConversation = asyncHandler(async (req, res) => {
 });
 
 
-// 🔹 Send message (SAVE TO DB)
 export const sendMessage = asyncHandler(async (req, res) => {
   const { conversationId, text } = req.body;
 
@@ -176,7 +169,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
   );
 });
 
-// 🔹 Get messages
+
 export const getMessages = asyncHandler(async (req, res) => {
   const { id: conversationId } = req.params;
 
@@ -184,19 +177,19 @@ export const getMessages = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Conversation ID is required");
   }
 
-  // ✅ FIND CONVERSATION
+ 
   const conversation = await Conversation.findById(conversationId);
 
   if (!conversation) {
     throw new ApiError(404, "Conversation not found");
   }
 
-  // 🔐 AUTHORIZATION
+
   if (!conversation.members.some(m => String(m) === String(req.user._id))) {
     throw new ApiError(403, "You are not authorized to view messages");
   }
 
-  // ✅ FETCH MESSAGES
+
   const messages = await Message.find({ conversationId })
     .populate("sender", "username")
     .sort({ createdAt: 1 });
@@ -207,31 +200,28 @@ export const getMessages = asyncHandler(async (req, res) => {
 });
 
 
-// 🔥 GET USER CONVERSATIONS (PRO VERSION)
 export const getUserConversations = async (req, res) => {
   try {
     const userId = req.user._id;
 
     const conversations = await Conversation.find({
-      members: req.user._id, // ✅ correct (no change)
+      members: req.user._id, 
     })
-      .populate("members", "username email avatar") // ✅ good
-      .populate("skill", "title") // ✅ good
+      .populate("members", "username email avatar") 
+      .populate("skill", "title") 
       .sort({ updatedAt: -1 });
 
     const formatted = conversations.map((conv) => {
-      // ✅ FIX: safer comparison (already good, keeping)
       const otherUser = conv.members.find(
         (m) => String(m._id) !== String(userId)
       );
 
       return {
-        _id: String(conv._id), // 🔥 FIX: always send string (frontend safe)
+        _id: String(conv._id), 
 
-        // ✅ FIX: ensure always valid object
         otherUser: otherUser
           ? {
-              _id: String(otherUser._id), // 🔥 FIX: string id
+              _id: String(otherUser._id), 
               username: otherUser.username || "Unknown",
               avatar: otherUser.avatar || null,
             }
@@ -241,13 +231,13 @@ export const getUserConversations = async (req, res) => {
               avatar: null,
             },
 
-        // ✅ IMPROVED: fallback
+      
         lastMessage: conv.lastMessage || { text: "Start chatting..." },
 
-        // ✅ KEEP (no change)
+       
         skill: conv.skill || null,
 
-        // 🔥 FIX: send clean members (string ids only)
+        
         members: conv.members.map((m) => String(m._id)),
 
         updatedAt: conv.updatedAt,
@@ -256,7 +246,7 @@ export const getUserConversations = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      conversations: formatted, // ✅ no change
+      conversations: formatted, 
     });
 
   } catch (error) {

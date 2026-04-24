@@ -86,7 +86,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ GEO INDEX
 userSchema.index({ geoLocation: "2dsphere" });;
 
 userSchema.pre("save", async function () {
@@ -95,16 +94,16 @@ userSchema.pre("save", async function () {
   try {
     this.password = await bcrypt.hash(this.password, 10);
   } catch (error) {
-    throw error; // ensures error is handled
+    throw error; 
   }
 });
 
-// 🔑 CHECK PASSWORD
+
 userSchema.methods.isPasswordCorrect = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// 🎟️ GENERATE ACCESS TOKEN
+
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
@@ -120,7 +119,7 @@ userSchema.methods.generateAccessToken = function () {
   );
 };
 
-// 🔁 GENERATE REFRESH TOKEN
+
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {

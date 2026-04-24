@@ -32,19 +32,19 @@ function Dashboard() {
       {/* DASHBOARD STATS */}
       <div className="grid grid-cols-3 gap-6 mb-6">
         
-        {/* 🔥 CHANGE */}
+        
         <div className="card p-5 rounded-xl shadow">
           <h2>Total Credits</h2>
           <p className="text-2xl font-bold text-blue-500">260</p>
         </div>
 
-        {/* 🔥 CHANGE */}
+     
         <div className="card p-5 rounded-xl shadow">
           <h2>Current Streak</h2>
           <p className="text-2xl font-bold text-purple-500">12 days</p>
         </div>
 
-        {/* 🔥 CHANGE */}
+       
         <div className="card p-5 rounded-xl shadow">
           <h2>Reputation</h2>
           <p className="text-2xl font-bold text-blue-600">92/100</p>
@@ -52,20 +52,19 @@ function Dashboard() {
 
       </div>
 
-      {/* QUICK ACTIONS */}
-      {/* 🔥 CHANGE */}
+      
       <div className="card p-6 rounded-xl shadow mb-6">
         <h2 className="mb-4 font-semibold">Quick Actions</h2>
 
         <div className="grid grid-cols-3 gap-4">
 
-          {/* 🔥 CHANGE */}
+         
           <div className="p-4 bg-[var(--border)] rounded-lg">Update Profile</div>
 
-          {/* 🔥 CHANGE */}
+          
           <div className="p-4 bg-[var(--border)] rounded-lg">Find Nearby</div>
 
-          {/* 🔥 CHANGE */}
+       
           <div className="p-4 bg-[var(--border)] rounded-lg">Book Session</div>
 
         </div>
@@ -86,7 +85,7 @@ function Dashboard() {
                   {session.skill?.skillName || "No Skill"}
                 </h3>
 
-                {/* 🔥 CHANGE */}
+                
                 <p className="text-sm text-[var(--text)] opacity-70">
                   Mentor: {session.mentor?.username || "Unknown"}
                 </p>
@@ -116,7 +115,7 @@ function Dashboard() {
             ))}
           </div>
         ) : (
-          // 🔥 CHANGE
+          
           <div className="card p-6 rounded-xl shadow text-center opacity-70">
             No sessions booked yet 🚀
           </div>

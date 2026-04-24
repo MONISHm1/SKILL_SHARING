@@ -8,16 +8,16 @@ import TypingIndicator from "./TypingIndicator";
 const ChatWindow = ({ user, selectedChat, onRefreshChats }) => {
   const socket = getSocket();
 
-  // ✅ GET OTHER USER
+  //  GET OTHER USER
   const selectedUser = (() => {
     if (!selectedChat) return null;
 
-    // ✅ Case 1: backend gives otherUser
+    //  Case 1: backend gives otherUser
     if (selectedChat.otherUser?._id) {
       return selectedChat.otherUser;
     }
 
-    // ✅ Case 2: members array
+    // Case 2: members array
     if (selectedChat.members && user?._id) {
       const other = selectedChat.members.find(m => {
         const id = typeof m === "object" ? m._id : m;
@@ -40,9 +40,7 @@ const ChatWindow = ({ user, selectedChat, onRefreshChats }) => {
   const scrollRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-  // =========================================
-  // LOAD CHAT
-  // =========================================
+  
   useEffect(() => {
     const loadChat = async () => {
       if (!selectedChat?._id || !user?._id) {
@@ -94,9 +92,7 @@ const ChatWindow = ({ user, selectedChat, onRefreshChats }) => {
     };
   }, [selectedChat?._id, user?._id]);
 
-  // =========================================
-  // RECEIVE MESSAGE
-  // =========================================
+  
   useEffect(() => {
     if (!conversationId || !socket) return;
 
@@ -119,9 +115,7 @@ const ChatWindow = ({ user, selectedChat, onRefreshChats }) => {
     };
   }, [conversationId, socket]);
 
-  // =========================================
-  // TYPING
-  // =========================================
+
   useEffect(() => {
     if (!conversationId || !socket) return;
 
@@ -145,16 +139,12 @@ const ChatWindow = ({ user, selectedChat, onRefreshChats }) => {
     };
   }, [selectedUser?._id, conversationId, socket]);
 
-  // =========================================
-  // AUTO SCROLL
-  // =========================================
+ 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
 
-  // =========================================
-  // SEND MESSAGE
-  // =========================================
+
   const handleSend = async text => {
     console.log("TEXT:", text);
 console.log("CONVERSATION ID:", conversationId);

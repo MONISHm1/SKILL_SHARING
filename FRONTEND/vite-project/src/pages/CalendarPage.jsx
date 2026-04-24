@@ -8,12 +8,12 @@ function CalendarPage() {
   const [date, setDate] = useState(new Date());
   const [sessions, setSessions] = useState([]);
 
-  // 🔄 Fetch sessions on mount
+  //  Fetch sessions on mount
   useEffect(() => {
     fetchSessions();
   }, []);
 
-  // 📡 API CALL
+  //  API CALL
   const fetchSessions = async () => {
     try {
       const res = await API.get("/sessions/my");
@@ -26,7 +26,7 @@ function CalendarPage() {
     }
   };
 
-  // 🎯 FILTER sessions by selected date
+  //  FILTER sessions by selected date
   const selectedDateSessions = sessions.filter((session) => {
     const sessionDate = new Date(session.date);
 
@@ -40,14 +40,14 @@ function CalendarPage() {
   return (
     <div className="p-6 bg-[var(--bg)] text-[var(--text)]"> {/* 🔥 CHANGE */}
 
-      {/* 🧾 TITLE */}
+      {/*  TITLE */}
       <h1 className="text-2xl font-bold text-blue-600 mb-6">
-        📅 My Schedule
+         My Schedule
       </h1>
 
       <div className="grid grid-cols-2 gap-6">
 
-        {/* 📅 CALENDAR */}
+        {/*  CALENDAR */}
         <div className="card p-4"> {/* 🔥 CHANGE */}
 
           <Calendar
@@ -69,7 +69,7 @@ function CalendarPage() {
 
         </div>
 
-        {/* 📋 SESSION LIST */}
+        {/*  SESSION LIST */}
         <div className="card p-4"> {/* 🔥 CHANGE */}
 
           <h2 className="text-lg font-semibold mb-4">
@@ -90,7 +90,7 @@ function CalendarPage() {
                   {session.skill?.skillName}
                 </h3>
 
-                <p className="text-sm opacity-70"> {/* 🔥 CHANGE */}
+                <p className="text-sm opacity-70"> 
                   👤 {session.mentor?.username}
                 </p>
 

@@ -6,7 +6,7 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  // 🔥 LOAD USER FROM LOCALSTORAGE ON APP START
+  //  LOAD USER FROM LOCALSTORAGE ON APP START
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
 
@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // ✅ SOCKET
+  //  SOCKET
   useEffect(() => {
     if (user?._id) {
       connectSocket(user);

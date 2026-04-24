@@ -20,10 +20,10 @@ function Login() {
     try {
       const res = await API.post("/auth/login", form);
 
-      // ✅ store token
+      //  store token
       localStorage.setItem("token", res.data.data.accessToken);
 
-      // ✅ store correct user
+      //  store correct user
       localStorage.setItem("user", JSON.stringify(res.data.data.user));
 
       navigate("/dashboard");
@@ -59,7 +59,7 @@ function Login() {
           Login
         </button>
 
-        {/* ✅ REGISTER LINK */}
+        {/*  REGISTER LINK */}
         <p className="text-sm mt-4 text-center">
           New user?{" "}
           <Link to="/register" className="text-blue-600 font-semibold">

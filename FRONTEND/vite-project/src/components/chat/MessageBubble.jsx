@@ -1,17 +1,13 @@
 import { motion } from "framer-motion";
 
 const MessageBubble = ({ msg, own }) => {
-  // =========================================
-  // ✅ SAFE SENDER HANDLING (CRITICAL FIX)
-  // =========================================
+  
   const senderId = msg?.sender?._id || msg?.sender;
 
-  // (own is already passed, but this ensures safety if reused later)
+ 
   const isOwn = own ?? false;
 
-  // =========================================
-  // ✅ TIME FORMAT (NO CHANGE)
-  // =========================================
+  
   const time = new Date(msg?.createdAt || Date.now()).toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
@@ -26,7 +22,7 @@ const MessageBubble = ({ msg, own }) => {
         isOwn ? "justify-end" : "justify-start"
       }`}
     >
-      {/* 👤 Avatar (only for received messages) */}
+      {/*  Avatar (only for received messages) */}
       {!isOwn && (
         <img
           src={msg?.senderAvatar || "https://i.pravatar.cc/30?img=3"}
@@ -35,7 +31,7 @@ const MessageBubble = ({ msg, own }) => {
         />
       )}
 
-      {/* 💬 Message Bubble */}
+      {/* Message Bubble */}
       <div
         className={`
           group relative max-w-[75%] px-4 py-2 rounded-2xl text-sm
@@ -52,7 +48,7 @@ const MessageBubble = ({ msg, own }) => {
           {msg?.isDeleted ? "🚫 Message deleted" : msg?.text}
         </p>
 
-        {/* 🕒 TIMESTAMP + STATUS */}
+        {/*  TIMESTAMP + STATUS */}
         <div className="flex items-center justify-end gap-1 mt-1">
           <span className="text-[10px] opacity-70">{time}</span>
 
@@ -64,7 +60,7 @@ const MessageBubble = ({ msg, own }) => {
           )}
         </div>
 
-        {/* 🧠 FUTURE: delete button */}
+        {/*  FUTURE: delete button */}
         {isOwn && !msg?.isDeleted && (
           <button
             className="hidden group-hover:block absolute -top-2 -right-2 

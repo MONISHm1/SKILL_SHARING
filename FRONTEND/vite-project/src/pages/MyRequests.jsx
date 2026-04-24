@@ -47,18 +47,18 @@ function MyRequests() {
     filter === "All" ? requests : requests.filter(req => req.status === filter);
 
   return (
-    // 🔥 CHANGE: background + text from theme
+    
     <div className="p-4 bg-[var(--bg)] text-[var(--text)]">
       
       <h2 className="text-2xl font-bold mb-4">My Requests</h2>
 
-      {/* 🔥 FILTER UI */}
+     
       <div className="flex gap-3 mb-6 flex-wrap">
         {["All", "Pending", "Accepted", "Completed", "Rejected"].map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            // 🔥 CHANGE: remove bg-white → use theme variables
+          
             className={`px-4 py-1 rounded-full border text-sm transition
               ${filter === f 
                 ? "bg-blue-500 text-white shadow" 
@@ -69,29 +69,29 @@ function MyRequests() {
         ))}
       </div>
 
-      {/* 🔥 SESSION LIST */}
+    
       <div className="grid grid-cols-3 gap-6">
 
         {filteredRequests.length === 0 && (
-          // 🔥 CHANGE: text color from theme
+       
           <p className="text-center mt-10 opacity-70">No sessions found</p>
         )}
 
         {filteredRequests.map(session => (
           <div
             key={session._id}
-            // 🔥 CHANGE: replaced bg-white with card class
+     
             className="card p-4 rounded-xl hover:shadow-lg transition"
           >
             <div className="flex justify-between items-center">
               
-              {/* LEFT INFO */}
+        
               <div>
                 <h3 className="font-bold text-lg">
                   {session.skill?.skillName}
                 </h3>
 
-                {/* 🔥 CHANGE: remove text-gray-500 */}
+              
                 <p className="text-sm opacity-70">
                   Mentor: {session.mentor?.username}
                 </p>

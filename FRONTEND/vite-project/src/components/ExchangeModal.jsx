@@ -6,17 +6,17 @@ function ExchangeModal({ skill, onClose }) {
   const [selectedSkill, setSelectedSkill] = useState("");
   const [message, setMessage] = useState("");
 
-  // 🔥 GET MY SKILLS
+  //  GET MY SKILLS
   useEffect(() => {
     const fetchMySkills = async () => {
-      const res = await API.get("/skills/my"); // you already have this
+      const res = await API.get("/skills/my"); 
       setMySkills(res.data.data || []);
     };
 
     fetchMySkills();
   }, []);
 
-  // 🔥 SEND REQUEST
+  //  SEND REQUEST
   const handleExchange = async () => {
     try {
       await API.post("/exchange", {

@@ -11,7 +11,7 @@ const ChatSidebar = ({
 
   const chatList = conversations;
 
-  // 🔥 USER EXTRACTION (SAFE)
+  //  USER EXTRACTION (SAFE)
   const getUser = (chat) => {
     if (chat.otherUser && chat.otherUser._id) {
       return chat.otherUser;
@@ -37,7 +37,7 @@ const ChatSidebar = ({
     return null;
   };
 
-  // 🔍 FILTER
+  //  FILTER
   const filteredChats = chatList.filter((chat) => {
     const userObj = getUser(chat);
 

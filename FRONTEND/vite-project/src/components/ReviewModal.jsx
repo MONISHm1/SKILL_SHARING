@@ -54,7 +54,7 @@ const handleSubmit = async () => {
           Skill: {session.skill?.skillName}
         </p>
 
-        {/* ⭐ Star Rating */}
+        {/*  Star Rating */}
         <div className="flex gap-2 mb-3">
           {[1, 2, 3, 4, 5].map((star) => (
             <span

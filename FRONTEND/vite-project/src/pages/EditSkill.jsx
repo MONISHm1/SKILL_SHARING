@@ -15,14 +15,13 @@ function EditSkill() {
     location: "",
   });
 
-  // 📥 Fetch existing data
+  
   useEffect(() => {
     const fetchSkill = async () => {
       try {
         const res = await API.get(`/skills/${id}`);
         setForm(res.data);
-        // ❌ (BUG but not CSS-related — leaving as is per your request)
-        // if (skill) setForm(skill);
+        
       } catch (err) {
         console.log(err);
       }
@@ -35,7 +34,7 @@ function EditSkill() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✏️ UPDATE
+  //  UPDATE
   const handleUpdate = async () => {
     try {
       await API.put(`/skills/${id}`, form);
@@ -47,13 +46,9 @@ function EditSkill() {
   };
 
   return (
-    // 🔥 CHANGE 1: remove bg-white → use theme background
+    
     <div className="max-w-lg mx-auto p-6">
-
-      {/* 🔥 CHANGE 2: use card class instead of bg-white */}
       <div className="card p-6 rounded-xl shadow">
-
-        {/* 🔥 CHANGE 3: text adapts automatically */}
         <h2 className="text-xl font-bold mb-4 text-blue-600">
           Edit Skill
         </h2>

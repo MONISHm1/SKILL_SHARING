@@ -10,7 +10,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-// 🔥 UPDATED MENU
+
 const menu = [
   { name: "Dashboard", path: "/dashboard" },
   { name: "My Skills", path: "/my-skills" },
@@ -24,7 +24,7 @@ const menu = [
   { name: "Exchange", path: "/exchange" },
   { name: "Calendar", path: "/calendar" },
 
-  // ✅ NEW CHAT ITEM
+ 
   { name: "💬 Chats", path: "/chat" },
 ];
 
@@ -42,7 +42,7 @@ function Sidebar() {
       {menu.map((item) => {
         const isActive =
           location.pathname === item.path ||
-          location.pathname.startsWith(item.path + "/"); // 🔥 handles /chat/:id
+          location.pathname.startsWith(item.path + "/"); 
 
         return (
           <Link

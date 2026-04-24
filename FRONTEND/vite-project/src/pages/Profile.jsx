@@ -74,7 +74,7 @@ function Profile() {
   return (
     <div className="p-6 bg-[var(--bg)] text-[var(--text)]"> 
 
-      {/* 👤 MENTOR INFO */}
+      
       <div className="card p-6 mb-6"> {/* 🔥 CHANGE */}
         <h2 className="text-2xl font-bold">{mentor.username}</h2>
         <p className="text-gray-500 dark:text-gray-400">📍 {mentor.location}</p> 
@@ -99,7 +99,7 @@ function Profile() {
         </div>
       </div>
 
-      {/* ⭐ REVIEWS */}
+     
       <div>
         <h3 className="text-xl font-bold mb-3">Reviews</h3>
 
@@ -117,7 +117,7 @@ function Profile() {
                     {rev.review}
                   </p>
 
-                  {/* ✅ ONLY OWNER */}
+                  
                   {rev.reviewer?._id?.toString() === currentUser?._id?.toString() && (
                     <div className="flex gap-2 mt-3">
 

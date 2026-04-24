@@ -17,7 +17,7 @@ function Explore() {
 
   const navigate = useNavigate();
 
-  // 🔥 NEW: loading state for chat button
+
   const [loadingChat, setLoadingChat] = useState(null);
 
   const fetchSkills = async () => {
@@ -26,7 +26,7 @@ function Explore() {
         params: filters,
       });
 
-      const data = res.data?.data || []; // 🔥 FIX (safe optional chaining)
+      const data = res.data?.data || []; 
 
       setSkills(data);
       setFilteredSkills(data);
@@ -39,9 +39,7 @@ function Explore() {
     fetchSkills();
   }, [filters]);
 
-  // =========================================
-  // 🔥 CHAT HANDLER (IMPROVED SAFETY)
-  // =========================================
+
   const handleChat = async (skill) => {
   try {
 
@@ -54,32 +52,28 @@ function Explore() {
 
     const res = await API.post("/chat/conversation", {
       receiverId: skill.mentor._id,
-      skillId: skill._id, // ✅ keep
+      skillId: skill._id, 
     });
 
-    // 🔥 FIX: safe extraction (NO CHANGE)
+
     const conversation = res.data?.data || res.data;
 
     if (!conversation || !conversation._id) {
       throw new Error("Conversation ID missing");
     }
 
-    // =========================================
-    // 🔥 NEW FIX: ADD otherUser MANUALLY
-    // =========================================
+    
     const updatedConversation = {
       ...conversation,
 
-      // ✅ ADD THIS (CRITICAL FIX)
+    
       otherUser: {
         _id: skill.mentor._id,
         username: skill.mentor.username,
       },
     };
 
-    // =========================================
-    // 🔥 STORAGE (UPDATED)
-    // =========================================
+
 
     localStorage.setItem("selectedChatId", conversation._id);
 
@@ -91,15 +85,11 @@ function Explore() {
       })
     );
 
-    // ❗ CHANGE HERE: store updatedConversation instead of conversation
     localStorage.setItem(
       "activeChat",
       JSON.stringify(updatedConversation)
     );
 
-    // =========================================
-    // 🔥 NAVIGATION (NO CHANGE)
-    // =========================================
     navigate(`/chat/${conversation._id}`);
 
   } catch (error) {
@@ -150,7 +140,7 @@ function Explore() {
         </button>
       </div>
 
-      {/* SKILL CARDS */}
+  
       <div className="grid grid-cols-3 gap-6">
         {filteredSkills.length === 0 ? (
           <p className="text-[var(--text)] col-span-3 text-center opacity-60">
@@ -180,7 +170,7 @@ function Explore() {
                 {skill.mentor?.totalReviews || 0} reviews)
               </p>
 
-              {/* ACTION BUTTONS */}
+           
               <div className="flex gap-2 mt-3">
 
                 <button
@@ -197,7 +187,7 @@ function Explore() {
                   Exchange
                 </button>
 
-                {/* 🔥 CHAT BUTTON (IMPROVED UX) */}
+        
                 <button
                   onClick={() => handleChat(skill)}
                   disabled={loadingChat === skill._id}
@@ -212,7 +202,7 @@ function Explore() {
         )}
       </div>
 
-      {/* MODALS */}
+
       {selectedSkill && (
         <ScheduleModal
           skill={selectedSkill}

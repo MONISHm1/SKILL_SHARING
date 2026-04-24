@@ -3,7 +3,7 @@ import { connectSocket, getSocket } from "../socket/socket";
 import API from "../api/axios";
 
 const Chat = ({ selectedChat: propSelectedChat, user }) => {
-  console.log("🔥 Chat.jsx RENDERED");
+  console.log(" Chat.jsx RENDERED");
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [selectedChat, setSelectedChat] = useState(propSelectedChat || null);
@@ -13,9 +13,7 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
   const currentUserId = user?._id;
   const conversationId = selectedChat?._id;
 
-  // =========================================
-  // ✅ LOAD CHAT FROM PROP / LOCAL STORAGE
-  // =========================================
+ 
   useEffect(() => {
     if (propSelectedChat) {
       setSelectedChat(propSelectedChat);
@@ -33,23 +31,17 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
     }
   }, [propSelectedChat]);
 
-  // =========================================
-  // ✅ CONNECT SOCKET
-  // =========================================
+  
   useEffect(() => {
     if (!user?._id) return;
     connectSocket(user);
   }, [user]);
 
-  // =========================================
-  // ✅ VALID ID CHECK
-  // =========================================
+
   const isValidId = (id) =>
     typeof id === "string" && id.length === 24;
 
-  // =========================================
-  // 🔥 LOAD MESSAGES
-  // =========================================
+  
   useEffect(() => {
     if (!isValidId(conversationId)) return;
 
@@ -71,9 +63,7 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
     fetchMessages();
   }, [conversationId]);
 
-  // =========================================
-  // 🔥 SOCKET LISTENER
-  // =========================================
+
   useEffect(() => {
     const socket = getSocket();
     if (!socket || !conversationId) return;
@@ -95,18 +85,14 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
     };
   }, [conversationId]);
 
-  // =========================================
-  // 🔥 AUTO SCROLL
-  // =========================================
+ 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, [messages]);
 
-  // =========================================
-  // 🔥 SEND MESSAGE
-  // =========================================
+
   const handleSend = async () => {
     if (!text.trim() || !conversationId) return;
 
@@ -125,14 +111,10 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
     }
   };
 
-  // =========================================
-  // 🔥 GET OTHER USER (FIXED)
-  // =========================================
+
  const otherUser = selectedChat?.otherUser;
 
-  // =========================================
-  // ❗ NO CHAT SELECTED
-  // =========================================
+
   if (!selectedChat) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-400">
@@ -141,9 +123,7 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
     );
   }
 
-  // =========================================
-  // UI
-  // =========================================
+ 
   return (
     <div className="flex-1 flex flex-col bg-[var(--bg)] text-[var(--text)] h-full">
 

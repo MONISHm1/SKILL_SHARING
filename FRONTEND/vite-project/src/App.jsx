@@ -16,12 +16,12 @@ import CalendarPage from "./pages/CalendarPage";
 import Exchange from "./pages/Exchange";
 import Chat from "./pages/Chat";
 
-// ✅ NEW IMPORT (ADDED)
+
 import ChatLayout from "./components/chat/ChatLayout";
 
 function App() {
 
-  // ✅ TEMP USER (SAFE - replace later with auth context)
+
   const user = JSON.parse(localStorage.getItem("user"));
 
   return (
@@ -95,7 +95,7 @@ function App() {
         element={<ProtectedRoute><Layout><Exchange /></Layout></ProtectedRoute>}
       />
 
-      {/* 🔥 NEW CHAT LAYOUT ROUTE (ADDED - MAIN CHAT SYSTEM) */}
+   
       <Route
         path="/chat"
         element={
@@ -107,7 +107,7 @@ function App() {
         }
       />
 
-      {/* ✅ EXISTING ROUTE (KEEP - NO CHANGE) */}
+      
       <Route
         path="/chat/:id"
         element={

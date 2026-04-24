@@ -15,7 +15,7 @@ function MySkills() {
     fetchSkills();
   }, []);
 
-  // 🗑️ DELETE
+ 
   const handleDelete = async (id) => {
     if (!confirm("Delete this skill?")) return;
 
@@ -36,7 +36,7 @@ function MySkills() {
           <div
             key={skill._id}
 
-            // 🔥 CHANGED: bg-white → card
+           
             className="card p-5 hover:shadow-lg transition"
           >
 
@@ -44,7 +44,7 @@ function MySkills() {
               {skill.skillName}
             </h3>
 
-            {/* 🔥 CHANGED: text-gray-500 → theme friendly */}
+          
             <p className="text-sm text-[var(--text)] opacity-70">
               {skill.category} • {skill.mode}
             </p>
@@ -61,7 +61,7 @@ function MySkills() {
               Level: {skill.experienceLevel}
             </p>
 
-            {/* ACTION BUTTONS */}
+        
             <div className="flex gap-2 mt-4">
 
               <button

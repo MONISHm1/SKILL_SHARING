@@ -114,7 +114,7 @@ function Skills() {
   return (
     <div className="grid grid-cols-2 gap-6">
 
-      {/* 🔥 CHANGE: card instead of bg-white */}
+     
       <div className="card p-6 shadow-lg">
         <h2 className="text-xl font-bold mb-4 text-blue-600">Add Skill</h2>
 
@@ -126,7 +126,7 @@ function Skills() {
           className="input"
         />
 
-        {/* 🔥 CHANGE: select dark mode support */}
+       
         <select
           name="category"
           value={form.category}
@@ -149,7 +149,7 @@ function Skills() {
           className="input"
         />
 
-        {/* 🔥 CHANGE */}
+       
         <select
           name="experienceLevel"
           value={form.experienceLevel}
@@ -161,7 +161,7 @@ function Skills() {
           <option>Expert</option>
         </select>
 
-        {/* 🔥 CHANGE */}
+       
         <select
           name="mode"
           value={form.mode}
@@ -197,7 +197,7 @@ function Skills() {
         </button>
       </div>
 
-      {/* 🔥 CHANGE: right side card */}
+     
       <div className="card p-6 shadow-lg flex items-center justify-center">
         <p className="opacity-60">Skill Preview / Video Upload</p>
       </div>

@@ -108,7 +108,7 @@ function MentorSessions() {
     <div>
       <h2 className="text-xl font-bold mb-4">Manage Sessions</h2>
 
-      {/* FILTER */}
+    
       <div className="flex gap-3 mb-4">
         {["All", "Pending", "Accepted", "Completed", "Rejected"].map(f => (
           <button
@@ -127,7 +127,7 @@ function MentorSessions() {
 
       {filteredSessions.length === 0 ? (
         <div className="card p-6 text-center">
-          {/* 🔥 CHANGED */}
+         
           No requests found 📭
         </div>
       ) : (
@@ -135,7 +135,7 @@ function MentorSessions() {
           {filteredSessions.map(session => (
             <div
               key={session._id}
-              className="card p-5 hover:shadow-lg transition" // 🔥 CHANGED
+              className="card p-5 hover:shadow-lg transition" 
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -167,7 +167,7 @@ function MentorSessions() {
                 <StatusBadge status={session.status} />
               </div>
 
-              {/* STATUS */}
+          
               <div className="mt-2 text-sm">
                 {session.mode === "Offline" && session.location && (
                   <p className="text-orange-500">
@@ -176,7 +176,7 @@ function MentorSessions() {
                 )}
               </div>
 
-              {/* ACTIONS */}
+           
               <div className="mt-4 flex gap-2 flex-wrap">
                 {session.status === "Pending" && (
                   <>

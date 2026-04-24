@@ -14,7 +14,7 @@ function Exchange() {
     fetchExchanges();
   }, []);
 
-  // 🔥 SPLIT LOGIC (UNCHANGED)
+ 
   const incoming = exchanges.filter(
     (ex) => ex.receiver?._id === getUserId()
   );
@@ -29,16 +29,15 @@ function Exchange() {
   };
 
   return (
-    // 🔥 CHANGE: add theme-aware background
+    
     <div className="p-6 bg-[var(--bg)] text-[var(--text)] min-h-screen">
       
       <h2 className="text-xl font-bold mb-4">Exchange Requests</h2>
 
-      {/* 🔥 TABS */}
+     
       <div className="flex gap-4 mb-6">
         <button
           onClick={() => setActiveTab("incoming")}
-          // 🔥 CHANGE: dark-friendly inactive state
           className={`px-4 py-1 rounded ${
             activeTab === "incoming"
               ? "bg-blue-500 text-white"
@@ -50,7 +49,6 @@ function Exchange() {
 
         <button
           onClick={() => setActiveTab("outgoing")}
-          // 🔥 CHANGE: same here
           className={`px-4 py-1 rounded ${
             activeTab === "outgoing"
               ? "bg-blue-500 text-white"
@@ -61,11 +59,9 @@ function Exchange() {
         </button>
       </div>
 
-      {/* 🔥 LIST */}
       {(activeTab === "incoming" ? incoming : outgoing).map((ex) => (
         <div
           key={ex._id}
-          // 🔥 CHANGE: use card system
           className="card p-4 mb-4"
         >
           <p className="font-semibold">
@@ -82,12 +78,10 @@ function Exchange() {
             Offer: {ex.offeredSkill?.skillName}
           </p>
 
-          {/* 🔥 CHANGE: adaptive text color */}
           <p className="text-sm opacity-70">
             Status: {ex.status}
           </p>
 
-          {/* 🔥 ACTION BUTTONS */}
           {activeTab === "incoming" && ex.status === "Pending" && (
             <div className="flex gap-2 mt-2">
               <button
@@ -113,7 +107,6 @@ function Exchange() {
 
 export default Exchange;
 
-// 🔥 HELPER FUNCTION (UNCHANGED)
 function getUserId() {
   const token = localStorage.getItem("token");
 

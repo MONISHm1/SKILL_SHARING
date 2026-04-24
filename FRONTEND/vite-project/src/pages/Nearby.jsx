@@ -9,7 +9,7 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import SkillCard from "../components/SkillCard";
 
-// 🌍 Distance calculation
+
 function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
 
@@ -23,11 +23,11 @@ function getDistance(lat1, lon1, lat2, lon2) {
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
-// 🔥 UNIVERSAL COORDINATE HELPER (NEW)
+
 const getCoords = skill => {
   let coords = null;
 
-  // ✅ CASE 1: Proper GeoJSON
+
   if (
     skill.coordinates &&
     Array.isArray(skill.coordinates.coordinates) &&
@@ -36,7 +36,7 @@ const getCoords = skill => {
     coords = skill.coordinates.coordinates;
   }
 
-  // ✅ CASE 2: location = "lat,lng"
+  
   else if (typeof skill.location === "string" && skill.location.includes(",")) {
     const parts = skill.location.split(",");
 
@@ -53,7 +53,7 @@ const getCoords = skill => {
   return coords;
 };
 
-// 🔥 MAP CONTROLLER
+
 function MapController({ selectedSkill }) {
   const map = useMap();
 
@@ -69,7 +69,7 @@ function MapController({ selectedSkill }) {
   return null;
 }
 
-// 🔥 CUSTOM ICON
+
 const customIcon = new L.Icon({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
@@ -77,14 +77,14 @@ const customIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
-// 🔥 FIX marker issue
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
 
-// 🔥 NO CHANGES ABOVE (ALL YOUR LOGIC SAME)
+
 
 function Nearby() {
   const [position, setPosition] = useState(null);
@@ -189,17 +189,16 @@ function Nearby() {
   if (!position) return <p>No location available</p>;
 
   return (
-    // 🔥 CHANGE 1: page bg fix
+    
     <div className="flex h-[85vh] gap-4 p-4 bg-[var(--bg)] text-[var(--text)]">
 
-      {/* LEFT LIST */}
-      {/* 🔥 CHANGE 2: replace bg-white with card */}
+     
       <div className="w-1/3 card p-4 overflow-y-auto rounded-2xl">
 
         <div className="flex flex-col gap-3 mb-4">
           <h2 className="text-xl font-bold text-blue-600">Nearby Skills</h2>
 
-          {/* 🔥 CHANGE 3: input fix */}
+        
           <input
             type="text"
             placeholder="Search skill..."
@@ -208,7 +207,7 @@ function Nearby() {
             className="px-3 py-2 border border-[var(--border)] bg-[var(--card)] text-[var(--text)] rounded-lg text-sm shadow-sm"
           />
 
-          {/* 🔥 CHANGE 4: select fix */}
+        
           <select
             value={category}
             onChange={e => setCategory(e.target.value)}
@@ -222,7 +221,7 @@ function Nearby() {
             <option value="Academic">Academic</option>
           </select>
 
-          {/* 🔥 CHANGE 5: select fix */}
+         
           <select
             value={maxDistance}
             onChange={e => setMaxDistance(Number(e.target.value))}
@@ -254,8 +253,7 @@ function Nearby() {
         ))}
       </div>
 
-      {/* MAP */}
-      {/* 🔥 CHANGE 6: wrap map container */}
+ 
       <div className="w-2/3 h-full rounded-2xl overflow-hidden shadow-lg border border-[var(--border)]">
 
         <MapContainer
@@ -296,7 +294,7 @@ function Nearby() {
                   }}
                 >
                   <Popup>
-                    {/* 🔥 CHANGE 7: popup dark support */}
+                  
                     <div className="text-sm text-[var(--text)]">
                       <b>{skill.skillName}</b>
                       <br />

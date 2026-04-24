@@ -12,13 +12,13 @@ const ChatLayout = ({ user }) => {
   const [conversations, setConversations] = useState([]);
   const [refresh, setRefresh] = useState(false);
 
-  // ✅ CONNECT SOCKET
+  //  CONNECT SOCKET
   useEffect(() => {
     if (!user?._id) return;
     connectSocket(user);
   }, [user]);
 
-  // ✅ FETCH CONVERSATIONS
+  
   useEffect(() => {
     if (!user) {
       console.log("❌ USER NOT READY");
@@ -33,7 +33,7 @@ const ChatLayout = ({ user }) => {
 
         setConversations(chats);
 
-        // ✅ keep current chat if exists
+        
         if (selectedChat) {
           const updated = chats.find(c => c._id === selectedChat._id);
           if (updated) {
@@ -42,7 +42,7 @@ const ChatLayout = ({ user }) => {
           }
         }
 
-        // // ✅ AUTO SELECT FIRST CHAT
+        // //  AUTO SELECT FIRST CHAT
         // if (!id && chats.length > 0) {
         //   setSelectedChat(chats[0]);
         // }
@@ -54,7 +54,7 @@ const ChatLayout = ({ user }) => {
     fetchChats();
   }, [user, refresh]);
 
-  // ✅ HANDLE URL CHAT
+  //  HANDLE URL CHAT
   useEffect(() => {
     if (!id || !conversations.length) return;
 
@@ -78,7 +78,7 @@ const ChatLayout = ({ user }) => {
       <div className="flex-1">
         <ChatWindow
           key={selectedChat?._id}
-          selectedChat={selectedChat} // 🔥 IMPORTANT FIX
+          selectedChat={selectedChat} 
           user={user}
           onRefreshChats={() => setRefresh(prev => !prev)}
         />

@@ -24,7 +24,7 @@ function LocationAutocomplete({ value, onSelect }) {
   const handleChange = (e) => {
     const input = e.target.value;
 
-    onSelect(input, null); // reset coords
+    onSelect(input, null); 
     fetchLocations(input);
   };
 

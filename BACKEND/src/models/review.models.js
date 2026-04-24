@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 const reviewSchema = new mongoose.Schema({
 
   reviewer: {
@@ -30,5 +32,7 @@ const reviewSchema = new mongoose.Schema({
   }
 
 }, { timestamps: true });
+
+reviewSchema.index({ session: 1, reviewer: 1 }, { unique: true });
 
 export default mongoose.model("Review", reviewSchema);

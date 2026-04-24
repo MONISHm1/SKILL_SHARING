@@ -1,0 +1,266 @@
+import Conversation from "../models/conversation.model.js";
+import Message from "../models/message.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { getIO } from "../sockets/chat.socket.js";
+
+// 🔹 Create or get conversation
+export const getOrCreateConversation = asyncHandler(async (req, res) => {
+  const { receiverId } = req.body;
+
+  if (!receiverId) {
+    throw new ApiError(400, "Receiver ID is required");
+  }
+
+  if (receiverId.toString() === req.user._id.toString()) {
+    throw new ApiError(400, "Cannot chat with yourself");
+  }
+
+  const userId = req.user._id;
+
+  // ✅ FIX: ALWAYS SORT MEMBERS
+  const members = [userId, receiverId].map(String).sort();
+
+  // =========================================
+  // ✅ FIND EXISTING (USE SORTED ARRAY)
+  // =========================================
+  let conversation = await Conversation.findOne({
+    members: members,
+  }).populate("members", "username email");
+
+  // =========================================
+  // ✅ CREATE IF NOT FOUND
+  // =========================================
+  if (!conversation) {
+    try {
+      conversation = await Conversation.create({
+        members: members, // ✅ FIX HERE
+      });
+
+      conversation = await Conversation.findById(conversation._id)
+        .populate("members", "username email");
+
+    } catch (err) {
+      if (err.code === 11000) {
+        console.log("⚠️ Duplicate detected, fetching again");
+
+        // ✅ FIX: USE SAME SORTED QUERY
+        conversation = await Conversation.findOne({
+          members: members,
+        }).populate("members", "username email");
+      } else {
+        console.error("❌ Create error:", err);
+        throw new ApiError(500, "Conversation creation failed");
+      }
+    }
+  }
+
+  if (!conversation) {
+    throw new ApiError(500, "Conversation creation failed");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, conversation, "Conversation ready")
+  );
+});
+
+
+// 🔹 Send message (SAVE TO DB)
+export const sendMessage = asyncHandler(async (req, res) => {
+  const { conversationId, text } = req.body;
+
+  // =========================================
+  // ✅ VALIDATION (IMPROVED)
+  // =========================================
+  if (!conversationId) {
+    throw new ApiError(400, "Conversation ID is required");
+  }
+
+  if (!text || !text.trim()) {
+    throw new ApiError(400, "Message cannot be empty");
+  }
+
+  const trimmedText = text.trim();
+
+  // =========================================
+  // ✅ FIND CONVERSATION
+  // =========================================
+  const conversation = await Conversation.findById(conversationId);
+
+  if (!conversation) {
+    throw new ApiError(404, "Conversation not found");
+  }
+
+  // =========================================
+  // ✅ CHECK USER IS MEMBER
+  // =========================================
+  const isMember = conversation.members.some(
+    (memberId) => String(memberId) === String(req.user._id)
+  );
+
+  if (!isMember) {
+    throw new ApiError(403, "You are not part of this conversation");
+  }
+
+  // =========================================
+  // ✅ FIND RECEIVER (SAFE)
+  // =========================================
+  const receiverId = conversation.members.find(
+    (id) => String(id) !== String(req.user._id)
+  );
+
+  if (!receiverId) {
+    throw new ApiError(400, "Receiver not found in conversation");
+  }
+
+  // =========================================
+  // ✅ CREATE MESSAGE
+  // =========================================
+  const message = await Message.create({
+    conversationId,
+    sender: req.user._id,
+    receiver: receiverId,
+    text: trimmedText,
+  });
+
+  // =========================================
+  // ✅ UPDATE LAST MESSAGE (FIXED)
+  // =========================================
+  const now = new Date(); // ✅ single source of time
+
+  conversation.lastMessage = {
+    text: trimmedText,
+    sender: req.user._id,
+    createdAt: now,
+  };
+
+  // 🔥 IMPORTANT: since middleware removed
+  conversation.lastMessageAt = now;
+
+  // optional (mongoose handles this anyway)
+  conversation.updatedAt = now;
+
+  await conversation.save();
+
+  // =========================================
+  // ✅ POPULATE MESSAGE
+  // =========================================
+  const populatedMessage = await Message.findById(message._id)
+    .populate("sender", "username")
+    .populate("receiver", "username");
+
+  // =========================================
+  // 🔥 SOCKET EMIT (IMPROVED SAFETY)
+  // =========================================
+  try {
+    const io = getIO();
+
+    if (io) {
+      io.to(String(receiverId)).emit("getMessage", populatedMessage);
+      io.to(String(req.user._id)).emit("getMessage", populatedMessage);
+    }
+  } catch (err) {
+    console.log("Socket emit error:", err.message);
+  }
+
+  // =========================================
+  // ✅ RESPONSE
+  // =========================================
+  return res.status(201).json(
+    new ApiResponse(
+      201,
+      populatedMessage,
+      "Message sent successfully"
+    )
+  );
+});
+
+// 🔹 Get messages
+export const getMessages = asyncHandler(async (req, res) => {
+  const { id: conversationId } = req.params;
+
+  if (!conversationId) {
+    throw new ApiError(400, "Conversation ID is required");
+  }
+
+  // ✅ FIND CONVERSATION
+  const conversation = await Conversation.findById(conversationId);
+
+  if (!conversation) {
+    throw new ApiError(404, "Conversation not found");
+  }
+
+  // 🔐 AUTHORIZATION
+  if (!conversation.members.some(m => String(m) === String(req.user._id))) {
+    throw new ApiError(403, "You are not authorized to view messages");
+  }
+
+  // ✅ FETCH MESSAGES
+  const messages = await Message.find({ conversationId })
+    .populate("sender", "username")
+    .sort({ createdAt: 1 });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, messages, "Messages fetched successfully"));
+});
+
+
+// 🔥 GET USER CONVERSATIONS (PRO VERSION)
+export const getUserConversations = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const conversations = await Conversation.find({
+      members: req.user._id, // ✅ correct (no change)
+    })
+      .populate("members", "username email avatar") // ✅ good
+      .populate("skill", "title") // ✅ good
+      .sort({ updatedAt: -1 });
+
+    const formatted = conversations.map((conv) => {
+      // ✅ FIX: safer comparison (already good, keeping)
+      const otherUser = conv.members.find(
+        (m) => String(m._id) !== String(userId)
+      );
+
+      return {
+        _id: String(conv._id), // 🔥 FIX: always send string (frontend safe)
+
+        // ✅ FIX: ensure always valid object
+        otherUser: otherUser
+          ? {
+              _id: String(otherUser._id), // 🔥 FIX: string id
+              username: otherUser.username || "Unknown",
+              avatar: otherUser.avatar || null,
+            }
+          : {
+              _id: null,
+              username: "Unknown",
+              avatar: null,
+            },
+
+        // ✅ IMPROVED: fallback
+        lastMessage: conv.lastMessage || { text: "Start chatting..." },
+
+        // ✅ KEEP (no change)
+        skill: conv.skill || null,
+
+        // 🔥 FIX: send clean members (string ids only)
+        members: conv.members.map((m) => String(m._id)),
+
+        updatedAt: conv.updatedAt,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      conversations: formatted, // ✅ no change
+    });
+
+  } catch (error) {
+    console.error("getUserConversations error:", error);
+    throw new ApiError(500, "Failed to fetch conversations");
+  }
+};

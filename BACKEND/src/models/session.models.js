@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 const sessionSchema = new mongoose.Schema({
 
   learner: {
@@ -35,10 +37,20 @@ const sessionSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["Pending", "Accepted", "Completed", "Cancelled"],
+    enum: ["Pending", "Accepted", "Completed", "Rejected"],
     default: "Pending",
     index: true
-  }
+  },
+
+  meetingLink: {
+  type: String,
+  default: null
+},
+
+  location: {
+  type: String,
+  default: null,
+},
 
 }, { timestamps: true });
 

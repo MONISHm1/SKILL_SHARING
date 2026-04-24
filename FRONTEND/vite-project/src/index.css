@@ -1,1 +1,136 @@
 @import "tailwindcss";
+
+
+/* 🌞 LIGHT */
+.light {
+  --bg: #ffffff;
+  --card: #ffffff;
+  --text: #111827;
+  --border: #e5e7eb;
+}
+
+/* 🌙 DARK */
+.dark {
+  --bg: #111827;
+  --card: #1f2937;
+  --text: #f9fafb;
+  --border: #374151;
+}
+
+/* 🌑 DARK+ */
+.dark-plus {
+  --bg: #030712;
+  --card: #111827;
+  --text: #e5e7eb;
+  --border: #1f2937;
+}
+
+/* ⚫ DARK++ */
+.dark-pro {
+  --bg: #000000;
+  --card: #020617;
+  --text: #d1d5db;
+  --border: #111827;
+}
+
+
+
+body {
+  @apply min-h-screen transition-colors duration-300;
+
+  background-color: var(--bg);
+  color: var(--text);
+
+  /* 🌞 LIGHT GRADIENT */
+  background-image: linear-gradient(to bottom right, #ede9fe, #bfdbfe);
+}
+
+/* 🌙 DARK MODES */
+.dark body {
+  background-image: linear-gradient(to bottom right, #111827, #1f2937);
+}
+
+.dark-plus body {
+  background-image: linear-gradient(to bottom right, #020617, #111827);
+}
+
+.dark-pro body {
+  background: #000000;
+}
+
+
+
+.input {
+  @apply w-full p-2 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400;
+
+  background-color: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+
+
+.card {
+  background-color: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+
+
+.btn {
+  @apply px-4 py-1 rounded-lg text-white transition;
+}
+
+.btn-primary {
+  @apply bg-blue-500 hover:bg-blue-600;
+}
+
+.btn-danger {
+  @apply bg-red-500 hover:bg-red-600;
+}
+
+
+
+* {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+
+@keyframes dropdownFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+    backdrop-filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    backdrop-filter: blur(6px);
+  }
+}
+
+.animate-dropdown {
+  animation: dropdownFade 0.25s ease-out;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background: var(--card);
+}
+
+.sidebar-link.active {
+  background: linear-gradient(to right, #3b82f6, #9333ea);
+  color: white;
+}

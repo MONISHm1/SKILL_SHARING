@@ -1,22 +1,29 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
+import { connectSocket } from "../socket/socket";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-  const login = (data) => {
-    setUser(data);
-    localStorage.setItem("token", data.token);
-  };
+  // 🔥 LOAD USER FROM LOCALSTORAGE ON APP START
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("token");
-  };
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  // ✅ SOCKET
+  useEffect(() => {
+    if (user?._id) {
+      connectSocket(user);
+    }
+  }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, setUser }}>
       {children}
     </AuthContext.Provider>
   );

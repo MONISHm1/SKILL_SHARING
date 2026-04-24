@@ -3,7 +3,8 @@ import { ApiError } from "../utils/ApiError.js";
 import User from "../models/user.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
-
+import axios from "axios";
+import { getCoordinates } from "../utils/geocoder.js";
 
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -17,86 +18,96 @@ const generateAccessAndRefreshTokens = async (userId) => {
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
-    // Save refresh token in DB
     user.refreshToken = refreshToken;
-
     await user.save({ validateBeforeSave: false });
 
     return { accessToken, refreshToken };
-
   } catch (error) {
     console.error("Token generation error:", error);
-
-    throw new ApiError(
-      500,
-      "Something went wrong while generating access and refresh tokens"
-    );
+    throw new ApiError(500, "Token generation failed");
   }
 };
 
+
 const registerUser = asyncHandler(async (req, res) => {
+  const { username, email, password, location, coordinates } = req.body;
 
-  // 1. Get user details
-  const { username, email, password, location, experience, latitude, longitude } = req.body;
-
-  // 2. Validation (ONLY REQUIRED FIELDS)
-  if ([username, email, password].some(field => !field || field.trim() === "")) {
-    throw new ApiError(400, "Username, email, and password are required");
+  // ✅ VALIDATION
+  if ([username, email, password, location].some(field => !field || field.trim() === "")) {
+    throw new ApiError(400, "Username, email, password and location are required");
   }
 
-  // 3. Check if user already exists
+  // ✅ CHECK EXISTING USER
   const existedUser = await User.findOne({
-    $or: [{ email }, { username }]
+    $or: [{ email }, { username }],
   });
 
   if (existedUser) {
     throw new ApiError(409, "User already exists");
   }
 
-  // 4. Handle optional coordinates
-  let coordinatesData = undefined;
+  // ✅ HANDLE COORDINATES
+  let geoLocationData;
 
-  if (latitude && longitude) {
-    coordinatesData = {
+  if (
+    coordinates &&
+    coordinates.coordinates &&
+    coordinates.coordinates.length === 2 &&
+    coordinates.coordinates.every(coord => typeof coord === "number")
+  ) {
+    // ✅ If frontend already sends valid coordinates
+    geoLocationData = coordinates;
+  } else {
+    // ✅ Get from OpenCage
+    // 🔥 FIX: use array destructuring
+const [lng, lat] = await getCoordinates(location);
+
+console.log("COORDINATES:", lng, lat);
+
+// 🔥 FIX: check properly
+if (lat == null || lng == null) {
+  throw new ApiError(500, "Invalid coordinates from geocoder");
+}
+
+    geoLocationData = {
       type: "Point",
-      coordinates: [parseFloat(longitude), parseFloat(latitude)]
+      coordinates: [lng, lat], // 🔥 ALWAYS [lng, lat]
     };
   }
 
-  // 5. Create user
+  // ✅ CREATE USER
   const user = await User.create({
     username: username.toLowerCase(),
     email,
     password,
-    location: location || "",
-    experience: experience || "Beginner",
-    coordinates: coordinatesData
+
+    // ✅ TEXT LOCATION
+    location: location,
+
+    // ✅ GEO LOCATION
+    geoLocation: geoLocationData,
   });
 
-  // 6. Fetch user without password
-  const createdUser = await User.findById(user._id).select("-password");
+  // ✅ REMOVE SENSITIVE DATA
+  const createdUser = await User.findById(user._id).select("-password -refreshToken");
 
   if (!createdUser) {
     throw new ApiError(500, "User registration failed");
   }
 
-  // 7. Send response
   return res.status(201).json(
     new ApiResponse(201, createdUser, "User registered successfully")
   );
 });
 
-const loginUser = asyncHandler(async (req, res) => {
 
-  // 1. Get data
+const loginUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
 
-  // 2. Validation
   if ((!username && !email) || !password) {
     throw new ApiError(400, "Username/email and password are required");
   }
 
-  // 3. Find user (IMPORTANT: include password)
   const user = await User.findOne({
     $or: [{ username }, { email }],
   }).select("+password");
@@ -105,34 +116,24 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User does not exist");
   }
 
-  // 4. Check password
   const isPasswordValid = await user.isPasswordCorrect(password);
 
   if (!isPasswordValid) {
     throw new ApiError(401, "Invalid credentials");
   }
 
-  // 5. Generate tokens
-  const accessToken = user.generateAccessToken();
-  const refreshToken = user.generateRefreshToken();
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
 
-  // OPTIONAL: save refresh token in DB (recommended)
-  user.refreshToken = refreshToken;
-  await user.save({ validateBeforeSave: false });
-
-  // 6. Remove sensitive fields manually
   const userData = user.toObject();
   delete userData.password;
   delete userData.refreshToken;
 
-  // 7. Cookie options
   const options = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // FIXED
-    sameSite: "strict"
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
   };
 
-  // 8. Send response
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -143,32 +144,25 @@ const loginUser = asyncHandler(async (req, res) => {
         {
           user: userData,
           accessToken,
-          refreshToken
+          refreshToken,
         },
         "User logged in successfully"
       )
     );
 });
 
+
 const logoutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(req.user._id, {
+    $set: { refreshToken: "" },
+  });
 
-  // Remove refresh token from DB
-  await User.findByIdAndUpdate(
-    req.user._id,
-    {
-      $set: { refreshToken: "" }
-    },
-    { new: true }
-  );
-
-  // Cookie options (must match login)
   const options = {
     httpOnly: true,
     secure: true,
-    sameSite: "strict"
+    sameSite: "strict",
   };
 
-  // Clear cookies
   return res
     .status(200)
     .clearCookie("accessToken", options)
@@ -176,38 +170,25 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
+
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  const incomingRefreshToken =
-    req.cookies.refreshToken || req.body.refreshToken;
+  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Unauthorized request");
   }
 
   try {
-    // Verify refresh token
-    const decodedToken = jwt.verify(
-      incomingRefreshToken,
-      process.env.REFRESH_TOKEN_SECRET
-    );
+    const decoded = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
 
-    // Find user
-    const user = await User.findById(decodedToken?._id);
+    const user = await User.findById(decoded._id);
 
-    if (!user) {
+    if (!user || user.refreshToken !== incomingRefreshToken) {
       throw new ApiError(401, "Invalid refresh token");
     }
 
-    // Check token match (IMPORTANT SECURITY CHECK)
-    if (incomingRefreshToken !== user.refreshToken) {
-      throw new ApiError(401, "Refresh token is expired or already used");
-    }
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
 
-    // Generate new tokens
-    const { accessToken, refreshToken: newRefreshToken } =
-      await generateAccessAndRefreshTokens(user._id);
-
-    // Cookie options
     const options = {
       httpOnly: true,
       secure: true,
@@ -217,105 +198,82 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     return res
       .status(200)
       .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", newRefreshToken, options)
+      .cookie("refreshToken", refreshToken, options)
       .json(
         new ApiResponse(
           200,
-          {
-            accessToken,
-            refreshToken: newRefreshToken,
-          },
-          "Access token refreshed successfully"
+          { accessToken, refreshToken },
+          "Token refreshed successfully"
         )
       );
   } catch (error) {
-    throw new ApiError(401, error?.message || "Invalid refresh token");
+    throw new ApiError(401, "Invalid refresh token");
   }
 });
+
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
-  // 1. Validate input
   if (!oldPassword || !newPassword) {
-    throw new ApiError(400, "Both old and new passwords are required");
+    throw new ApiError(400, "Both passwords required");
   }
 
-  if (newPassword.length < 6) {
-    throw new ApiError(400, "New password must be at least 6 characters");
+  const user = await User.findById(req.user._id).select("+password");
+
+  const isValid = await user.isPasswordCorrect(oldPassword);
+
+  if (!isValid) {
+    throw new ApiError(400, "Invalid old password");
   }
 
-  // 2. Get user WITH password
-  const user = await User.findById(req.user?._id).select("+password");
+  user.password = newPassword;
+  await user.save();
+
+  return res.status(200).json(new ApiResponse(200, {}, "Password updated"));
+});
+
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  
+  // 🔥 CHANGE: fetch full user from DB
+  const user = await User.findById(req.user._id).select("-password");
+
+  return res.status(200).json({
+    success: true,
+    data: user,
+    message: "User fetched successfully",
+  });
+});
+
+
+const updateAccountDetails = asyncHandler(async (req, res) => {
+  const { username, email, location } = req.body;
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { username, email, location } },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "Updated"));
+});
+
+
+const getUserProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id)
+    .select("-password -refreshToken")
+    .populate("skillsOffered");
 
   if (!user) {
     throw new ApiError(404, "User not found");
   }
 
-  // 3. Check old password
-  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
-
-  if (!isPasswordCorrect) {
-    throw new ApiError(400, "Invalid old password");
-  }
-
-  // 4. Prevent same password reuse
-  if (oldPassword === newPassword) {
-    throw new ApiError(400, "New password cannot be same as old password");
-  }
-
-  // 5. Set new password (will auto hash via pre-save)
-  user.password = newPassword;
-
-  await user.save(); // ✅ DO NOT skip validation
-
-  return res.status(200).json(
-    new ApiResponse(200, {}, "Password changed successfully")
-  );
-});
-
-const getCurrentUser = asyncHandler(async (req, res) => {
-  if (!req.user) {
-    throw new ApiError(401, "Unauthorized access");
-  }
-
-  return res.status(200).json(
-    new ApiResponse(200, req.user, "User fetched successfully")
-  );
-});
-
-const updateAccountDetails = asyncHandler(async (req, res) => {
-  const { username, email, location, experience } = req.body;
-
-  // Validate required fields
-  if (!username || !email) {
-    throw new ApiError(400, "Username and email are required");
-  }
-
-  // Check if email already exists (for another user)
-  const existingUser = await User.findOne({ email });
-
-  if (existingUser && existingUser._id.toString() !== req.user._id.toString()) {
-    throw new ApiError(400, "Email already in use");
-  }
-
-  // Update user
-  const updatedUser = await User.findByIdAndUpdate(
-    req.user._id,
-    {
-      $set: {
-        username,
-        email,
-        location,
-        experience
-      },
-    },
-    { new: true, runValidators: true }
-  ).select("-password");
-
-  return res.status(200).json(
-    new ApiResponse(200, updatedUser, "Account details updated successfully")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Profile fetched"));
 });
 
 
@@ -327,4 +285,5 @@ export {
   changeCurrentPassword,
   getCurrentUser,
   updateAccountDetails,
+  getUserProfile,
 };

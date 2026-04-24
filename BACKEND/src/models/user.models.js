@@ -2,120 +2,136 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-const userSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    trim: true
-  },
-
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    index: true
-  },
-
-  password: {
-    type: String,
-    required: true,
-    select: false
-  },
-  refreshToken: {
+const userSchema = new mongoose.Schema(
+  {
+    username: {
       type: String,
+      required: [true, "Username is required"],
+      trim: true
     },
 
-  location: {
-    type: String,
-    default:"",
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      lowercase: true,
+      trim: true,
+      match: [/.+\@.+\..+/, "Please use a valid email address"]
+    },
+
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+      select: false
+    },
+
+    refreshToken: {
+      type: String
+    },
+
+    // ✅ KEEP THIS (TEXT LOCATION)
+    location: {
+      type: String,
+      required: [true, "Location is required"],
+      trim: true
+    },
+
+    // ✅ KEEP THIS (GEO LOCATION)
+    geoLocation: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point" // ✅ removed required (not needed)
+      },
+      coordinates: {
+        type: [Number], // [lng, lat]
+        required: true,
+        validate: {
+          validator: function (val) {
+            return val.length === 2;
+          },
+          message: "Coordinates must be [longitude, latitude]"
+        }
+      }
+    },
+
+    experience: {
+      type: String,
+      enum: ["Beginner", "Intermediate", "Expert"],
+      default: "Beginner"
+    },
+
+    skillsOffered: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Skill"
+      }
+    ],
+
+    averageRating: {
+      type: Number,
+      default: 0
+    },
+
+    totalReviews: {
+      type: Number,
+      default: 0
+    },
+
+    isVerified: {
+      type: Boolean,
+      default: false
+    }
   },
+  { timestamps: true }
+);
 
-coordinates: {
-  type: {
-    type: String,
-    enum: ["Point"]
-  },
-  coordinates: {
-    type: [Number]
-  }
-},
+// ✅ GEO INDEX
+userSchema.index({ geoLocation: "2dsphere" });;
 
-  experience: {
-    type: String,
-    enum: ["Beginner", "Intermediate", "Expert"]
-  },
-
-  skillsOffered: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Skill"
-  }],
-
-  averageRating: {
-    type: Number,
-    default: 0
-  },
-
-  totalReviews: {
-    type: Number,
-    default: 0
-  },
-
-  isVerified: {
-    type: Boolean,
-    default: false
-  }
-
-}, { timestamps: true });
-
-userSchema.index({ coordinates: "2dsphere" });
-
-// Hash password before saving
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) {
-    return;
-  }
+  if (!this.isModified("password")) return;
 
-  this.password = await bcrypt.hash(this.password, 10);
+  try {
+    this.password = await bcrypt.hash(this.password, 10);
+  } catch (error) {
+    throw error; // ensures error is handled
+  }
 });
 
-
-// Check password
+// 🔑 CHECK PASSWORD
 userSchema.methods.isPasswordCorrect = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-
-// Generate Access Token
+// 🎟️ GENERATE ACCESS TOKEN
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
       _id: this._id,
       email: this.email,
-      usernamename: this.username,          
-      location: this.location   
+      username: this.username,
+      location: this.location
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1d",
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1d"
     }
   );
 };
 
-
-//  Generate Refresh Token
+// 🔁 GENERATE REFRESH TOKEN
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
-      _id: this._id,            
+      _id: this._id
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d",
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d"
     }
   );
 };
-
 
 export default mongoose.model("User", userSchema);
 

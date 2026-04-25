@@ -16,8 +16,6 @@ function Explore() {
   });
 
   const navigate = useNavigate();
-
-
   const [loadingChat, setLoadingChat] = useState(null);
 
   const fetchSkills = async () => {
@@ -26,7 +24,7 @@ function Explore() {
         params: filters,
       });
 
-      const data = res.data?.data || []; 
+      const data = res.data?.data || [];
 
       setSkills(data);
       setFilteredSkills(data);
@@ -39,68 +37,60 @@ function Explore() {
     fetchSkills();
   }, [filters]);
 
-
   const handleChat = async (skill) => {
-  try {
+    try {
+      if (!skill?.mentor?._id) {
+        alert("Mentor not available");
+        return;
+      }
 
-    if (!skill?.mentor?._id) {
-      alert("Mentor not available");
-      return;
+      setLoadingChat(skill._id);
+
+      const res = await API.post("/chat/conversation", {
+        receiverId: skill.mentor._id,
+        skillId: skill._id,
+      });
+
+      const conversation = res.data?.data || res.data;
+
+      if (!conversation || !conversation._id) {
+        throw new Error("Conversation ID missing");
+      }
+
+      const updatedConversation = {
+        ...conversation,
+        otherUser: {
+          _id: skill.mentor._id,
+          username: skill.mentor.username,
+        },
+      };
+
+      localStorage.setItem("selectedChatId", conversation._id);
+
+      localStorage.setItem(
+        "chatUser",
+        JSON.stringify({
+          _id: skill.mentor._id,
+          username: skill.mentor.username,
+        })
+      );
+
+      localStorage.setItem(
+        "activeChat",
+        JSON.stringify(updatedConversation)
+      );
+
+      navigate(`/chat/${conversation._id}`);
+
+    } catch (error) {
+      console.error("Chat error:", error?.response?.data || error.message);
+    } finally {
+      setLoadingChat(null);
     }
-
-    setLoadingChat(skill._id);
-
-    const res = await API.post("/chat/conversation", {
-      receiverId: skill.mentor._id,
-      skillId: skill._id, 
-    });
-
-
-    const conversation = res.data?.data || res.data;
-
-    if (!conversation || !conversation._id) {
-      throw new Error("Conversation ID missing");
-    }
-
-    
-    const updatedConversation = {
-      ...conversation,
-
-    
-      otherUser: {
-        _id: skill.mentor._id,
-        username: skill.mentor.username,
-      },
-    };
-
-
-
-    localStorage.setItem("selectedChatId", conversation._id);
-
-    localStorage.setItem(
-      "chatUser",
-      JSON.stringify({
-        _id: skill.mentor._id,
-        username: skill.mentor.username,
-      })
-    );
-
-    localStorage.setItem(
-      "activeChat",
-      JSON.stringify(updatedConversation)
-    );
-
-    navigate(`/chat/${conversation._id}`);
-
-  } catch (error) {
-    console.error("Chat error:", error?.response?.data || error.message);
-  } finally {
-    setLoadingChat(null);
-  }
-};
+  };
 
   return (
-    <div className="bg-[var(--bg)] text-[var(--text)] min-h-screen">
+    <div className="bg-[var(--bg)] text-[var(--text)] min-h-screen p-4">
 
       {/* FILTER BAR */}
       <div className="flex gap-4 mb-6 flex-wrap">
@@ -135,42 +125,68 @@ function Explore() {
           Clear
         </button>
 
-        <button onClick={fetchSkills} className="bg-blue-500 text-white px-4 rounded-lg">
+        <button
+          onClick={fetchSkills}
+          className="bg-blue-500 text-white px-4 rounded-lg"
+        >
           Refresh
         </button>
       </div>
 
-  
+      {/* SKILLS GRID */}
       <div className="grid grid-cols-3 gap-6">
         {filteredSkills.length === 0 ? (
-          <p className="text-[var(--text)] col-span-3 text-center opacity-60">
+          <p className="col-span-3 text-center opacity-60">
             No skills found 😔
           </p>
         ) : (
           filteredSkills.map(skill => (
-            <div key={skill._id} className="card p-4 hover:shadow-lg transition">
+            <div
+              key={skill._id}
+              className="card p-4 rounded-xl shadow-md hover:shadow-xl transition duration-200"
+            >
+             
+             {skill.video?.url ? (
+                  <video
+                    src={skill.video.url}
+                    controls
+                    className="w-full h-48 object-cover rounded-lg mb-3"
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg mb-3">
+                    <span className="text-gray-500 text-sm">
+                      No Video Available
+                    </span>
+                  </div>
+                )}
+
+             
               <h3 className="font-bold text-lg">{skill.skillName}</h3>
 
+            
               <p className="text-sm opacity-70">
                 {skill.category} • {skill.mode}
               </p>
 
+             
               <p className="text-sm mt-2">
                 📍 {skill.location || "Location not specified"}
               </p>
 
+              
               <Link to={`/profile/${skill.mentor?._id}`}>
-                <p className="text-blue-500 cursor-pointer hover:underline">
+                <p className="text-blue-500 hover:underline">
                   {skill.mentor?.username || "Unknown"}
                 </p>
               </Link>
 
+              
               <p className="text-yellow-500 text-sm">
                 ⭐ {skill.mentor?.averageRating?.toFixed(1) || 0} (
                 {skill.mentor?.totalReviews || 0} reviews)
               </p>
 
-           
+              
               <div className="flex gap-2 mt-3">
 
                 <button
@@ -187,22 +203,21 @@ function Explore() {
                   Exchange
                 </button>
 
-        
                 <button
                   onClick={() => handleChat(skill)}
                   disabled={loadingChat === skill._id}
-                  className="px-3 py-1 border border-[var(--border)] rounded-lg hover:bg-[var(--card)] flex items-center gap-1 disabled:opacity-50"
-                  title="Chat with mentor"
+                  className="px-3 py-1 border rounded-lg hover:bg-[var(--card)] disabled:opacity-50"
                 >
                   {loadingChat === skill._id ? "..." : "💬"}
                 </button>
+
               </div>
             </div>
           ))
         )}
       </div>
 
-
+      
       {selectedSkill && (
         <ScheduleModal
           skill={selectedSkill}

@@ -27,14 +27,14 @@ function App() {
   return (
     <Routes>
 
-      {/* Default */}
+      
       <Route path="/" element={<Navigate to="/login" />} />
 
-      {/* Auth */}
+      
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Protected Routes */}
+      
       <Route
         path="/dashboard"
         element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>}

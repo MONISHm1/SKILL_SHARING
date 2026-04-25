@@ -29,19 +29,19 @@ const userSchema = new mongoose.Schema(
       type: String
     },
 
-    // ✅ KEEP THIS (TEXT LOCATION)
+    
     location: {
       type: String,
       required: [true, "Location is required"],
       trim: true
     },
 
-    // ✅ KEEP THIS (GEO LOCATION)
+   
     geoLocation: {
       type: {
         type: String,
         enum: ["Point"],
-        default: "Point" // ✅ removed required (not needed)
+        default: "Point" 
       },
       coordinates: {
         type: [Number], // [lng, lat]

@@ -15,7 +15,6 @@ function MySkills() {
     fetchSkills();
   }, []);
 
- 
   const handleDelete = async (id) => {
     if (!confirm("Delete this skill?")) return;
 
@@ -24,7 +23,7 @@ function MySkills() {
   };
 
   return (
-    <div className="bg-[var(--bg)] text-[var(--text)]"> {/* 🔥 ADDED */}
+    <div className="bg-[var(--bg)] text-[var(--text)]">
 
       <h2 className="text-2xl font-bold mb-6 text-blue-600">
         My Skills
@@ -35,16 +34,26 @@ function MySkills() {
         {skills.map((skill) => (
           <div
             key={skill._id}
-
-           
             className="card p-5 hover:shadow-lg transition"
           >
+
+            
+            {skill.video?.url ? (
+              <video
+                src={skill.video.url}
+                controls
+                className="w-full h-40 object-cover rounded-lg mb-3"
+              />
+            ) : (
+              <div className="w-full h-40 bg-gray-200 flex items-center justify-center rounded-lg mb-3 text-sm text-gray-500">
+                No Video Available
+              </div>
+            )}
 
             <h3 className="font-bold text-lg">
               {skill.skillName}
             </h3>
 
-          
             <p className="text-sm text-[var(--text)] opacity-70">
               {skill.category} • {skill.mode}
             </p>
@@ -61,7 +70,6 @@ function MySkills() {
               Level: {skill.experienceLevel}
             </p>
 
-        
             <div className="flex gap-2 mt-4">
 
               <button

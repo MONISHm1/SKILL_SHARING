@@ -22,10 +22,10 @@ import axios from "axios";
 //  Use env variable OR fallback
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
-  withCredentials: true, // ✅ important for cookies (future safe)
+  withCredentials: true, 
 });
 
-//  Attach token automatically
+
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
 
@@ -36,7 +36,7 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-// OPTIONAL BUT VERY USEFUL (ERROR HANDLING)
+
 API.interceptors.response.use(
   (res) => res,
   (err) => {

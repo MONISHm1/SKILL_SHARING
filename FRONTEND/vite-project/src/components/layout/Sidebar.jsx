@@ -10,7 +10,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-
 const menu = [
   { name: "Dashboard", path: "/dashboard" },
   { name: "My Skills", path: "/my-skills" },
@@ -24,7 +23,6 @@ const menu = [
   { name: "Exchange", path: "/exchange" },
   { name: "Calendar", path: "/calendar" },
 
- 
   { name: "💬 Chats", path: "/chat" },
 ];
 
@@ -32,30 +30,26 @@ function Sidebar() {
   const location = useLocation();
 
   return (
-    <div className="w-60 h-screen bg-[var(--card)] text-[var(--text)] border-r border-[var(--border)] shadow-lg p-4">
-
+    <div className="fixed top-0 left-0 w-60 h-screen bg-[var(--card)] text-[var(--text)] border-r border-[var(--border)] shadow-lg p-4 overflow-y-auto">
       {/* Logo */}
-      <h1 className="text-lg font-bold mb-6">
-        NSSN
-      </h1>
+      <h1 className="text-lg font-bold mb-6">NSSN</h1>
 
-      {menu.map((item) => {
+      {menu.map(item => {
         const isActive =
-          location.pathname === item.path ||
-          location.pathname.startsWith(item.path + "/"); 
+          location.pathname === item.path || location.pathname.startsWith(item.path + "/");
 
         return (
           <Link
             key={item.name}
             to={item.path}
             className={`block p-3 rounded-lg mb-2 transition duration-200
-              
-              ${
-                isActive
-                  ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md"
-                  : "hover:bg-[var(--border)]"
-              }
-            `}
+          
+          ${
+            isActive
+              ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md"
+              : "hover:bg-[var(--border)]"
+          }
+        `}
           >
             {item.name}
           </Link>

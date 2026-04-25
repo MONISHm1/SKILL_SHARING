@@ -11,7 +11,7 @@ const ChatSidebar = ({
 
   const chatList = conversations;
 
-  //  USER EXTRACTION (SAFE)
+  //  USER EXTRACTION
   const getUser = (chat) => {
     if (chat.otherUser && chat.otherUser._id) {
       return chat.otherUser;

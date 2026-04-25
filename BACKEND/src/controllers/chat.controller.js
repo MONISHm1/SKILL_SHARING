@@ -63,9 +63,7 @@ export const getOrCreateConversation = asyncHandler(async (req, res) => {
 export const sendMessage = asyncHandler(async (req, res) => {
   const { conversationId, text } = req.body;
 
-  // =========================================
-  // ✅ VALIDATION (IMPROVED)
-  // =========================================
+ 
   if (!conversationId) {
     throw new ApiError(400, "Conversation ID is required");
   }
@@ -76,18 +74,13 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   const trimmedText = text.trim();
 
-  // =========================================
-  // ✅ FIND CONVERSATION
-  // =========================================
   const conversation = await Conversation.findById(conversationId);
 
   if (!conversation) {
     throw new ApiError(404, "Conversation not found");
   }
 
-  // =========================================
-  // ✅ CHECK USER IS MEMBER
-  // =========================================
+  
   const isMember = conversation.members.some(
     (memberId) => String(memberId) === String(req.user._id)
   );
@@ -96,9 +89,6 @@ export const sendMessage = asyncHandler(async (req, res) => {
     throw new ApiError(403, "You are not part of this conversation");
   }
 
-  // =========================================
-  // ✅ FIND RECEIVER (SAFE)
-  // =========================================
   const receiverId = conversation.members.find(
     (id) => String(id) !== String(req.user._id)
   );
@@ -107,9 +97,6 @@ export const sendMessage = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Receiver not found in conversation");
   }
 
-  // =========================================
-  // ✅ CREATE MESSAGE
-  // =========================================
   const message = await Message.create({
     conversationId,
     sender: req.user._id,
@@ -117,10 +104,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
     text: trimmedText,
   });
 
-  // =========================================
-  // ✅ UPDATE LAST MESSAGE (FIXED)
-  // =========================================
-  const now = new Date(); // ✅ single source of time
+  const now = new Date(); 
 
   conversation.lastMessage = {
     text: trimmedText,
@@ -128,24 +112,19 @@ export const sendMessage = asyncHandler(async (req, res) => {
     createdAt: now,
   };
 
-  // 🔥 IMPORTANT: since middleware removed
   conversation.lastMessageAt = now;
 
-  // optional (mongoose handles this anyway)
+  
   conversation.updatedAt = now;
 
   await conversation.save();
 
-  // =========================================
-  // ✅ POPULATE MESSAGE
-  // =========================================
+
   const populatedMessage = await Message.findById(message._id)
     .populate("sender", "username")
     .populate("receiver", "username");
 
-  // =========================================
-  // 🔥 SOCKET EMIT (IMPROVED SAFETY)
-  // =========================================
+ 
   try {
     const io = getIO();
 
@@ -157,9 +136,6 @@ export const sendMessage = asyncHandler(async (req, res) => {
     console.log("Socket emit error:", err.message);
   }
 
-  // =========================================
-  // ✅ RESPONSE
-  // =========================================
   return res.status(201).json(
     new ApiResponse(
       201,

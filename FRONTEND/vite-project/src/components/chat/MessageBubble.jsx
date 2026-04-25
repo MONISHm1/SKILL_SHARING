@@ -22,7 +22,7 @@ const MessageBubble = ({ msg, own }) => {
         isOwn ? "justify-end" : "justify-start"
       }`}
     >
-      {/*  Avatar (only for received messages) */}
+      
       {!isOwn && (
         <img
           src={msg?.senderAvatar || "https://i.pravatar.cc/30?img=3"}
@@ -31,7 +31,7 @@ const MessageBubble = ({ msg, own }) => {
         />
       )}
 
-      {/* Message Bubble */}
+     
       <div
         className={`
           group relative max-w-[75%] px-4 py-2 rounded-2xl text-sm
@@ -43,16 +43,16 @@ const MessageBubble = ({ msg, own }) => {
           }
         `}
       >
-        {/* MESSAGE TEXT */}
+        
         <p className="break-words leading-relaxed whitespace-pre-wrap">
           {msg?.isDeleted ? "🚫 Message deleted" : msg?.text}
         </p>
 
-        {/*  TIMESTAMP + STATUS */}
+        
         <div className="flex items-center justify-end gap-1 mt-1">
           <span className="text-[10px] opacity-70">{time}</span>
 
-          {/* ✔✔ Status (only for own messages) */}
+         
           {isOwn && !msg?.isDeleted && (
             <span className="text-[10px] opacity-80">
               {msg?.read ? "✔✔" : "✔"}
@@ -60,7 +60,7 @@ const MessageBubble = ({ msg, own }) => {
           )}
         </div>
 
-        {/*  FUTURE: delete button */}
+      
         {isOwn && !msg?.isDeleted && (
           <button
             className="hidden group-hover:block absolute -top-2 -right-2 

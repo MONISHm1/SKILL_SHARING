@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 
-/* 🌞 LIGHT */
+
 .light {
   --bg: #ffffff;
   --card: #ffffff;
@@ -9,7 +9,7 @@
   --border: #e5e7eb;
 }
 
-/* 🌙 DARK */
+
 .dark {
   --bg: #111827;
   --card: #1f2937;
@@ -17,7 +17,7 @@
   --border: #374151;
 }
 
-/* 🌑 DARK+ */
+
 .dark-plus {
   --bg: #030712;
   --card: #111827;
@@ -25,7 +25,7 @@
   --border: #1f2937;
 }
 
-/* ⚫ DARK++ */
+
 .dark-pro {
   --bg: #000000;
   --card: #020617;
@@ -41,11 +41,11 @@ body {
   background-color: var(--bg);
   color: var(--text);
 
-  /* 🌞 LIGHT GRADIENT */
+  
   background-image: linear-gradient(to bottom right, #ede9fe, #bfdbfe);
 }
 
-/* 🌙 DARK MODES */
+
 .dark body {
   background-image: linear-gradient(to bottom right, #111827, #1f2937);
 }

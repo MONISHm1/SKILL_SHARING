@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
 import LocationAutocomplete from "../components/LocationAutocomplete";
+import VideoUpload from "../components/video/VideoUploader.jsx";
 
 function Skills() {
   const [form, setForm] = useState({
@@ -13,6 +14,10 @@ function Skills() {
   });
 
   const [coordinates, setCoordinates] = useState(null);
+  const [videoUrl, setVideoUrl] = useState("");
+
+  
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -36,6 +41,10 @@ function Skills() {
 
     fetchUser();
   }, []);
+
+  useEffect(() => {
+  console.log(" VIDEO URL STATE:", videoUrl);
+}, [videoUrl]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -72,6 +81,12 @@ function Skills() {
       return;
     }
 
+   
+    if (isUploading) {
+      alert("Please wait for video upload to finish");
+      return;
+    }
+
     try {
       const payload = {
         skillName: form.skillName,
@@ -86,6 +101,9 @@ function Skills() {
               coordinates: coordinates,
             }
           : undefined,
+
+       
+        videoUrl: videoUrl || "",
       };
 
       console.log("FINAL PAYLOAD:", payload);
@@ -94,6 +112,7 @@ function Skills() {
 
       alert("✅ Skill Added Successfully");
 
+     
       setForm({
         skillName: "",
         category: "",
@@ -104,6 +123,7 @@ function Skills() {
       });
 
       setCoordinates(null);
+      setVideoUrl(""); 
 
     } catch (err) {
       console.log(err.response?.data || err);
@@ -126,7 +146,6 @@ function Skills() {
           className="input"
         />
 
-       
         <select
           name="category"
           value={form.category}
@@ -149,7 +168,6 @@ function Skills() {
           className="input"
         />
 
-       
         <select
           name="experienceLevel"
           value={form.experienceLevel}
@@ -161,7 +179,6 @@ function Skills() {
           <option>Expert</option>
         </select>
 
-       
         <select
           name="mode"
           value={form.mode}
@@ -197,9 +214,12 @@ function Skills() {
         </button>
       </div>
 
-     
+      
       <div className="card p-6 shadow-lg flex items-center justify-center">
-        <p className="opacity-60">Skill Preview / Video Upload</p>
+        <VideoUpload
+          setVideoUrl={setVideoUrl}
+          setIsUploading={setIsUploading} 
+        />
       </div>
 
     </div>

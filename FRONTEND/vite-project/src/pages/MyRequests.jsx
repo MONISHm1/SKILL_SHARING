@@ -107,7 +107,7 @@ function MyRequests() {
               <StatusBadge status={session.status} />
             </div>
 
-            {/* ACTION BUTTONS */}
+           
             <div className="mt-3 flex gap-2 flex-wrap">
               
               {session.status === "Pending" && (
@@ -144,7 +144,7 @@ function MyRequests() {
         ))}
       </div>
 
-      {/* MODAL */}
+      
       {selectedSession && (
         <ReviewModal
           session={selectedSession}

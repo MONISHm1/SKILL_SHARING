@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react"; 
+import { useEffect, useState, useRef } from "react";
 import API from "../../api/axios";
-
 
 import { useTheme } from "../../context/ThemeContext";
 
@@ -11,7 +10,6 @@ function Navbar() {
   const [user, setUser] = useState(null);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef();
-
 
   const { setTheme } = useTheme();
 
@@ -27,9 +25,8 @@ function Navbar() {
     fetchUser();
   }, []);
 
-
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handleClickOutside = e => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setOpen(false);
       }
@@ -47,69 +44,43 @@ function Navbar() {
   const initial = user?.username?.charAt(0)?.toUpperCase() || "U";
 
   return (
-    <div 
-    
-      className="sticky top-0 z-50 backdrop-blur-lg border-b shadow-sm px-6 py-3 flex justify-between items-center bg-[var(--card)] text-[var(--text)] border-[var(--border)]"
-    >
-      
-      <h1 className="text-xl font-bold text-blue-600 tracking-wide">
-        Neighbourhood Skill Sharing
-      </h1>
+    <div className="fixed top-0 left-60 right-0 z-50 backdrop-blur-lg border-b shadow-sm px-6 py-3 flex justify-between items-center bg-[var(--card)] text-[var(--text)] border-[var(--border)]">
+      <h1 className="text-xl font-bold text-blue-600 tracking-wide">Neighbourhood Skill Sharing</h1>
 
       <div className="relative" ref={dropdownRef}>
-
         <button
           onClick={() => setOpen(!open)}
-       
           className="flex items-center gap-2 px-3 py-1 rounded-full border shadow-sm hover:shadow-md transition bg-[var(--card)] text-[var(--text)] border-[var(--border)]"
         >
           <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold">
             {initial}
           </div>
 
-         
-          <span className="text-sm font-medium">
-            {user?.username || "User"}
-          </span>
+          <span className="text-sm font-medium">{user?.username || "User"}</span>
         </button>
 
         {open && (
-          <div 
-           
-            className="absolute right-0 mt-3 w-56 backdrop-blur-xl shadow-xl rounded-xl p-3 animate-dropdown bg-[var(--card)] text-[var(--text)] border border-[var(--border)]"
-          >
-
-            {/* USER INFO */}
+          <div className="absolute right-0 mt-3 w-56 backdrop-blur-xl shadow-xl rounded-xl p-3 animate-dropdown bg-[var(--card)] text-[var(--text)] border border-[var(--border)]">
             <div className="mb-2 border-b pb-2 border-[var(--border)]">
-              
-              <p className="font-semibold">
-                {user?.username}
-              </p>
-              <p className="text-xs opacity-70">
-                {user?.email}
-              </p>
+              <p className="font-semibold">{user?.username}</p>
+              <p className="text-xs opacity-70">{user?.email}</p>
             </div>
 
-            {/* PROFILE */}
             <button
               onClick={() => navigate(`/profile/${user?._id}`)}
-            
               className="w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--bg)] transition text-sm"
             >
               👤 Profile
             </button>
 
-            {/* LOGOUT */}
             <button
               onClick={handleLogout}
-             
               className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-100 text-red-500 transition text-sm"
             >
               🚪 Logout
             </button>
 
             <div className="border-t mt-2 pt-2 border-[var(--border)]">
-
               <p className="text-xs opacity-70 px-2 mb-1">Theme</p>
 
               <button
@@ -139,9 +110,7 @@ function Navbar() {
               >
                 🖤 Dark++
               </button>
-
             </div>
-
           </div>
         )}
       </div>

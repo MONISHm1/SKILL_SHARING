@@ -21,7 +21,6 @@ function Register() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  //  REMOVE THIS (not needed anymore)
   /*
   const handleLocationChange = (e) => {
     setForm({ ...form, location: e.target.value });
@@ -39,7 +38,7 @@ function Register() {
 
         setCoordinates(coords);
 
-        //  CHANGE: better label
+        
         setForm((prev) => ({
           ...prev,
           location: "Current Location",
@@ -56,7 +55,7 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    //  CHANGE: better validation
+    
     if (!coordinates && !form.location) {
       alert("Please select location from suggestions or use current location");
       return;
@@ -113,16 +112,16 @@ function Register() {
           className="w-full p-3 mb-3 border rounded-lg"
         />
 
-        {/*  CHANGE: AUTOCOMPLETE INSTEAD OF INPUT */}
+        
         <LocationAutocomplete
           value={form.location}
           onSelect={(loc, coords) => {
             setForm({ ...form, location: loc });
-            setCoordinates(coords); // 🔥 IMPORTANT
+            setCoordinates(coords); 
           }}
         />
 
-        {/*  GPS BUTTON */}
+        
         <button
           type="button"
           onClick={handleUseLocation}

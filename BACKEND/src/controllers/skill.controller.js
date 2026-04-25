@@ -1,10 +1,12 @@
-import mongoose from "mongoose"; // 🔥 ADD THIS
+import mongoose from "mongoose"; 
 import User from "../models/user.models.js";
 import Skill from "../models/skill.models.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { getCoordinates } from "../utils/geocoder.js"; // adjust path if needed
+import { getCoordinates } from "../utils/geocoder.js"; 
+import { v2 as cloudinary } from "cloudinary";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 
 export const addSkill = asyncHandler(async (req, res) => {
@@ -15,9 +17,10 @@ export const addSkill = asyncHandler(async (req, res) => {
     mode,
     description,
     location,
+    videoUrl, 
   } = req.body;
 
-  console.log("REQ BODY:", req.body); // 🔥 CHANGE
+  console.log("REQ BODY:", req.body);
 
   if (!skillName || !category || !description || !mode) {
     throw new ApiError(400, "Required fields missing");
@@ -33,15 +36,15 @@ export const addSkill = asyncHandler(async (req, res) => {
     typeof arr[0] === "number" &&
     typeof arr[1] === "number";
 
- 
+  // Frontend coordinates
   if (coordinates && isValidCoords(coordinates.coordinates)) {
     coords = coordinates.coordinates;
   }
 
-  
+  //Location string → geocode
   else if (location && location.trim() !== "") {
     try {
-      const cleanLocation = location.trim(); 
+      const cleanLocation = location.trim();
       const geo = await getCoordinates(cleanLocation);
       coords = geo;
     } catch (err) {
@@ -49,12 +52,12 @@ export const addSkill = asyncHandler(async (req, res) => {
     }
   }
 
-
+  // fallback user location
   else if (user?.coordinates?.coordinates) {
     coords = user.coordinates.coordinates;
   }
 
- 
+  
   if (!isValidCoords(coords)) {
     throw new ApiError(400, "Unable to determine location coordinates");
   }
@@ -69,9 +72,15 @@ export const addSkill = asyncHandler(async (req, res) => {
     category,
     description,
     mode,
-    location: location?.trim(), 
+    location: location?.trim(),
     coordinates: finalCoordinates,
     mentor: req.user._id,
+
+   
+    video: {
+      url: videoUrl || null,
+      publicId: null,
+    },
   });
 
   return res.status(201).json(
@@ -146,10 +155,57 @@ export const updateSkill = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Unauthorized");
   }
 
-  Object.assign(skill, req.body);
+  const {
+    skillName,
+    category,
+    description,
+    experienceLevel,
+    mode,
+    location,
+    videoUrl,
+  } = req.body;
+
+
+  if (skillName) skill.skillName = skillName;
+  if (category) skill.category = category;
+  if (description) skill.description = description;
+  if (experienceLevel) skill.experienceLevel = experienceLevel;
+  if (mode) skill.mode = mode;
+  if (location) skill.location = location;
+
+ 
+  if (videoUrl && videoUrl !== skill.video?.url) {
+    
+  
+    if (skill.video?.publicId) {
+      try {
+        await cloudinary.uploader.destroy(skill.video.publicId, {
+          resource_type: "video",
+        });
+      } catch (err) {
+        console.error("Error deleting old video:", err);
+      }
+    }
+
+    
+    const publicId = videoUrl
+      .split("/")
+      .slice(-2)
+      .join("/")
+      .split(".")[0];
+
+    
+    skill.video = {
+      url: videoUrl,
+      publicId: publicId || null,
+    };
+  }
+
   await skill.save();
 
-  return res.json(new ApiResponse(200, skill, "Skill updated"));
+  return res.json(
+    new ApiResponse(200, skill, "Skill updated successfully")
+  );
 });
 
 

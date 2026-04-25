@@ -16,7 +16,7 @@ function ExchangeModal({ skill, onClose }) {
     fetchMySkills();
   }, []);
 
-  //  SEND REQUEST
+  
   const handleExchange = async () => {
     try {
       await API.post("/exchange", {
@@ -40,7 +40,7 @@ function ExchangeModal({ skill, onClose }) {
           Exchange for {skill.skillName}
         </h2>
 
-        {/* SELECT MY SKILL */}
+       
         <select
           value={selectedSkill}
           onChange={(e) => setSelectedSkill(e.target.value)}

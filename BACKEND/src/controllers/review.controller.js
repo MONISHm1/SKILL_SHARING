@@ -27,7 +27,7 @@ export const addReview = asyncHandler(async (req, res) => {
     session: sessionId,
   });
 
-  // CALCULATE AVG + TOTAL USING AGGREGATION (BEST PRACTICE)
+  // CALCULATE AVG + TOTAL USING AGGREGATION (
   const stats = await Review.aggregate([
     {
       $match: {

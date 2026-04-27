@@ -20,7 +20,7 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 app.use((req, res, next) => {
-  console.log(`➡️ ${req.method} ${req.url}`);
+  console.log(` ${req.method} ${req.url}`);
   next();
 });
 
@@ -34,6 +34,7 @@ import requestRoutes from "./routes/request.routes.js";
 import exchangeRoutes from "./routes/exchange.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
@@ -44,6 +45,7 @@ app.use("/api/requests", requestRoutes);
 app.use("/api/exchange", exchangeRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // ================= HEALTH CHECK =================
 

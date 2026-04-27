@@ -15,9 +15,9 @@ import Nearby from "./pages/Nearby";
 import CalendarPage from "./pages/CalendarPage";
 import Exchange from "./pages/Exchange";
 import Chat from "./pages/Chat";
-
-
+import { NotificationProvider } from "./context/NotificationContext.jsx";
 import ChatLayout from "./components/chat/ChatLayout";
+import { Toaster } from "react-hot-toast";
 
 function App() {
 
@@ -25,6 +25,19 @@ function App() {
   const user = JSON.parse(localStorage.getItem("user"));
 
   return (
+    <NotificationProvider user={user}>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: "var(--card)",
+            color: "var(--text)",
+            border: "1px solid var(--border)",
+          },
+        }}
+        reverseOrder={false}
+      />
     <Routes>
 
       
@@ -120,6 +133,7 @@ function App() {
       />
 
     </Routes>
+    </NotificationProvider>
   );
 }
 

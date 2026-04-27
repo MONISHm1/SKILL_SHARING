@@ -13,7 +13,6 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
   const currentUserId = user?._id;
   const conversationId = selectedChat?._id;
 
- 
   useEffect(() => {
     if (propSelectedChat) {
       setSelectedChat(propSelectedChat);
@@ -31,17 +30,13 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
     }
   }, [propSelectedChat]);
 
-  
   useEffect(() => {
     if (!user?._id) return;
     connectSocket(user);
   }, [user]);
 
+  const isValidId = id => typeof id === "string" && id.length === 24;
 
-  const isValidId = (id) =>
-    typeof id === "string" && id.length === 24;
-
-  
   useEffect(() => {
     if (!isValidId(conversationId)) return;
 
@@ -49,10 +44,7 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
       try {
         const res = await API.get(`/chat/messages/${conversationId}`);
 
-        const msgs =
-          res?.data?.data ||
-          res?.data ||
-          [];
+        const msgs = res?.data?.data || res?.data || [];
 
         setMessages(msgs);
       } catch (err) {
@@ -61,37 +53,43 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
     };
 
     fetchMessages();
-  }, [conversationId]);
-
+  }, [conversationId, currentUserId]);
 
   useEffect(() => {
     const socket = getSocket();
     if (!socket || !conversationId) return;
 
-    const handleMessage = (data) => {
+    const handleMessage = data => {
       if (String(data.conversationId) !== String(conversationId)) return;
 
-      setMessages((prev) => {
-        const exists = prev.find((m) => m._id === data._id);
+      
+      if (String(data.senderId) === String(currentUserId)) return;
+
+      setMessages(prev => {
+        const exists = prev.some(
+          m =>
+            String(m._id) === String(data._id) ||
+            (m.text === data.text && String(m.senderId || m.sender?._id) === String(data.senderId))
+        );
+
         if (exists) return prev;
+
         return [...prev, data];
       });
     };
 
-    socket.on("getMessage", handleMessage);
+    socket.on("receiveMessage", handleMessage);
 
     return () => {
-      socket.off("getMessage", handleMessage);
+      socket.off("receiveMessage", handleMessage);
     };
-  }, [conversationId]);
+  }, [conversationId, currentUserId]);
 
- 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, [messages]);
-
 
   const handleSend = async () => {
     if (!text.trim() || !conversationId) return;
@@ -104,16 +102,14 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
 
       const newMsg = res.data?.data;
 
-      setMessages((prev) => [...prev, newMsg]);
+      setMessages(prev => [...prev, newMsg]);
       setText("");
     } catch (err) {
       console.error("Send message error:", err);
     }
   };
 
-
- const otherUser = selectedChat?.otherUser;
-
+  const otherUser = selectedChat?.otherUser;
 
   if (!selectedChat) {
     return (
@@ -123,42 +119,32 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
     );
   }
 
- 
   return (
     <div className="flex-1 flex flex-col bg-[var(--bg)] text-[var(--text)] h-full">
-
       {/* HEADER */}
       <div className="p-4 border-b border-[var(--border)] flex items-center gap-3">
-
         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
           {otherUser?.username?.charAt(0)?.toUpperCase() || "U"}
         </div>
 
         <div>
-          <p className="font-semibold">
-            {otherUser?.username || "Unknown"}
-          </p>
+          <p className="font-semibold">{otherUser?.username || "Unknown"}</p>
           <p className="text-xs text-gray-400">Online</p>
         </div>
-
       </div>
 
       {/* MESSAGES */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-
         {messages.length === 0 ? (
-          <p className="text-sm opacity-60 text-center">
-            No messages yet
-          </p>
+          <p className="text-sm opacity-60 text-center">No messages yet</p>
         ) : (
           messages.map((msg, i) => {
             const isOwn =
-              String(msg.sender?._id || msg.sender) ===
-              String(currentUserId);
+              String(msg.sender?._id || msg.senderId || msg.sender) === String(currentUserId);
 
             return (
               <div
-                key={msg._id || i}
+                key={msg._id || `${msg.senderId || msg.sender}-${msg.createdAt}`}
                 className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
               >
                 <div
@@ -185,20 +171,15 @@ const Chat = ({ selectedChat: propSelectedChat, user }) => {
       <div className="p-3 border-t border-[var(--border)] flex gap-2">
         <input
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={e => setText(e.target.value)}
           placeholder="Type a message..."
           className="flex-1 input"
         />
 
-        <button
-          onClick={handleSend}
-          className="btn btn-primary"
-          disabled={!conversationId}
-        >
+        <button onClick={handleSend} className="btn btn-primary" disabled={!conversationId}>
           Send
         </button>
       </div>
-
     </div>
   );
 };

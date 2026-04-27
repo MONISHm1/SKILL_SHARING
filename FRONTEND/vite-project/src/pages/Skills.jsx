@@ -15,8 +15,6 @@ function Skills() {
 
   const [coordinates, setCoordinates] = useState(null);
   const [videoUrl, setVideoUrl] = useState("");
-
-  
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
@@ -30,7 +28,8 @@ function Skills() {
           location: user.location || "",
         }));
 
-        if (user.geoLocation?.coordinates) {
+        
+        if (user.geoLocation?.coordinates?.length === 2) {
           setCoordinates(user.geoLocation.coordinates);
         }
 
@@ -42,10 +41,6 @@ function Skills() {
     fetchUser();
   }, []);
 
-  useEffect(() => {
-  console.log(" VIDEO URL STATE:", videoUrl);
-}, [videoUrl]);
-
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -55,6 +50,7 @@ function Skills() {
       pos => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
+
 
         setCoordinates([lng, lat]);
 
@@ -76,14 +72,14 @@ function Skills() {
       return;
     }
 
-    if (!coordinates && !form.location) {
-      alert("Please select location from suggestions or use GPS");
+    if (isUploading) {
+      alert("Please wait for video upload to finish");
       return;
     }
 
-   
-    if (isUploading) {
-      alert("Please wait for video upload to finish");
+    
+    if (!coordinates || coordinates.length !== 2) {
+      alert("Please select a valid location (autocomplete or GPS)");
       return;
     }
 
@@ -95,14 +91,13 @@ function Skills() {
         experienceLevel: form.experienceLevel,
         mode: form.mode,
         location: form.location,
-        coordinates: coordinates
-          ? {
-              type: "Point",
-              coordinates: coordinates,
-            }
-          : undefined,
 
-       
+        
+        coordinates: {
+          type: "Point",
+          coordinates: coordinates, 
+        },
+
         videoUrl: videoUrl || "",
       };
 
@@ -112,7 +107,6 @@ function Skills() {
 
       alert("✅ Skill Added Successfully");
 
-     
       setForm({
         skillName: "",
         category: "",
@@ -123,7 +117,7 @@ function Skills() {
       });
 
       setCoordinates(null);
-      setVideoUrl(""); 
+      setVideoUrl("");
 
     } catch (err) {
       console.log(err.response?.data || err);
@@ -134,7 +128,6 @@ function Skills() {
   return (
     <div className="grid grid-cols-2 gap-6">
 
-     
       <div className="card p-6 shadow-lg">
         <h2 className="text-xl font-bold mb-4 text-blue-600">Add Skill</h2>
 
@@ -194,7 +187,11 @@ function Skills() {
           value={form.location}
           onSelect={(loc, coords) => {
             setForm({ ...form, location: loc });
-            setCoordinates(coords);
+
+            
+            if (coords && coords.length === 2) {
+              setCoordinates(coords);
+            }
           }}
         />
 
@@ -214,11 +211,10 @@ function Skills() {
         </button>
       </div>
 
-      
       <div className="card p-6 shadow-lg flex items-center justify-center">
         <VideoUpload
           setVideoUrl={setVideoUrl}
-          setIsUploading={setIsUploading} 
+          setIsUploading={setIsUploading}
         />
       </div>
 

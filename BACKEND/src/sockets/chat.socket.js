@@ -2,11 +2,10 @@ import { Server } from "socket.io";
 
 let io;
 
-
 const onlineUsers = new Map();
 
-export const initSocket = (server) => {
-  const io = new Server(server, {
+export const initSocket = server => {
+  io = new Server(server, {
     cors: {
       origin: process.env.CLIENT_URL || "http://localhost:5173",
       methods: ["GET", "POST"],
@@ -14,18 +13,21 @@ export const initSocket = (server) => {
     },
   });
 
-  io.on("connection", (socket) => {
+  io.on("connection", socket => {
     console.log(`⚡ User Connected: ${socket.id}`);
 
     socket.on("join", ({ userId, username }) => {
       if (!userId) return;
 
-      onlineUsers.set(userId, {
+      const id = userId.toString(); //  IMPORTANT
+
+      onlineUsers.set(id, {
+        
         socketId: socket.id,
         username: username || "User",
       });
 
-      socket.join(userId);
+      socket.join(id); 
 
       console.log(`🟢 ${username} is online`);
 
@@ -38,8 +40,7 @@ export const initSocket = (server) => {
       );
     });
 
-  
-    socket.on("sendMessage", (data) => {
+    socket.on("sendMessage", async data => {
       const { senderId, receiverId, text, conversationId } = data;
 
       if (!senderId || !receiverId || !text?.trim()) return;
@@ -51,36 +52,31 @@ export const initSocket = (server) => {
         createdAt: new Date(),
       };
 
-    
-      const receiver = onlineUsers.get(receiverId);
+      const receiver = onlineUsers.get(receiverId.toString());
       if (receiver?.socketId) {
         io.to(receiver.socketId).emit("receiveMessage", messagePayload);
       }
 
-   
-      const sender = onlineUsers.get(senderId);
-      if (sender?.socketId) {
-        io.to(sender.socketId).emit("receiveMessage", messagePayload);
-      }
+      // const sender = onlineUsers.get(senderId.toString());
+      // if (sender?.socketId) {
+      //   io.to(sender.socketId).emit("receiveMessage", messagePayload);
+      // }
     });
 
-
     socket.on("typing", ({ senderId, receiverId }) => {
-      const receiver = onlineUsers.get(receiverId);
+      const receiver = onlineUsers.get(receiverId.toString()); // typing
       if (receiver?.socketId) {
         io.to(receiver.socketId).emit("typing", { senderId });
       }
     });
 
-   
     socket.on("stopTyping", ({ senderId, receiverId }) => {
-      const receiver = onlineUsers.get(receiverId);
+      const receiver = onlineUsers.get(receiverId.toString());
       if (receiver?.socketId) {
         io.to(receiver.socketId).emit("stopTyping", { senderId });
       }
     });
 
-   
     socket.on("disconnect", () => {
       console.log(`🔴 User Disconnected: ${socket.id}`);
 
@@ -103,8 +99,8 @@ export const initSocket = (server) => {
   });
 };
 
-
 export const getIO = () => {
   if (!io) throw new Error("Socket.io not initialized");
   return io;
 };
+export const getOnlineUsers = () => onlineUsers;

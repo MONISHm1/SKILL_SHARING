@@ -19,13 +19,13 @@
 
 import axios from "axios";
 
-//  Use env variable OR fallback
+//  Base API instance 
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
-  withCredentials: true, 
+  withCredentials: true,
 });
 
-
+//  Attach JWT automatically
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
 
@@ -36,7 +36,7 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-
+//  Global error handler
 API.interceptors.response.use(
   (res) => res,
   (err) => {
@@ -44,5 +44,8 @@ API.interceptors.response.use(
     return Promise.reject(err);
   }
 );
+
+// Geoapify API Key 
+export const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY;
 
 export default API;

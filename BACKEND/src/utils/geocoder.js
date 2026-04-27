@@ -7,26 +7,32 @@ export const getCoordinates = async (location) => {
     console.log("📍 LOCATION:", cleanLocation);
 
     const res = await axios.get(
-      `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(cleanLocation)}&countrycode=in&key=${process.env.OPENCAGE_API_KEY}`
+      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
+        cleanLocation
+      )}&filter=countrycode:in&limit=1&apiKey=${process.env.GEOAPIFY_API_KEY}`
     );
 
-    console.log("🌍 API RESPONSE:", res.data);
+    console.log("🌍 GEOAPIFY RESPONSE:", res.data);
 
-    if (!res.data.results || res.data.results.length === 0) {
+    if (!res.data.features || res.data.features.length === 0) {
       throw new Error("Location not found. Try full name like 'Bangalore, India'");
     }
 
-    
-    const result = res.data.results[0];
+    const result = res.data.features[0];
 
-    if (result.components.country_code !== "in") {
+    // Geoapify uses properties.country_code (lowercase)
+    if (result.properties.country_code !== "in") {
       throw new Error("Location must be in India");
     }
 
+    const [lng, lat] = result.geometry.coordinates;
 
-    const { lat, lng } = result.geometry;
+    
+    if (!lng || !lat) {
+      throw new Error("Invalid coordinates received");
+    }
 
-    return [lng, lat];
+    return [lng, lat]; 
 
   } catch (error) {
     console.log("❌ GEOCODING ERROR:", error.response?.data || error.message);

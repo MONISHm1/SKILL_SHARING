@@ -3,7 +3,14 @@ import Skill from "../models/skill.models.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import Session from "../models/session.models.js";
+import { getIO } from "../sockets/chat.socket.js";
 
+import {
+  notifyExchangeRequest,
+  notifyExchangeAccepted,
+  notifyExchangeRejected,
+  notifySessionCreated,
+} from "../services/notification.service.js";
 
 export const createExchange = asyncHandler(async (req, res) => {
   const { requestedSkillId, offeredSkillId, message } = req.body;
@@ -19,7 +26,6 @@ export const createExchange = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Skill not found");
   }
 
-  
   if (requestedSkill.mentor.toString() === req.user._id.toString()) {
     throw new ApiError(400, "You cannot exchange your own skill");
   }
@@ -32,6 +38,11 @@ export const createExchange = asyncHandler(async (req, res) => {
     message,
   });
 
+  const io = getIO();
+
+  // 🔔 Notify receiver
+  notifyExchangeRequest(exchange.receiver, io);
+
   res.status(201).json({
     success: true,
     exchange,
@@ -40,10 +51,7 @@ export const createExchange = asyncHandler(async (req, res) => {
 
 export const getMyExchanges = asyncHandler(async (req, res) => {
   const exchanges = await Exchange.find({
-    $or: [
-      { requester: req.user._id },
-      { receiver: req.user._id }
-    ]
+    $or: [{ requester: req.user._id }, { receiver: req.user._id }],
   })
     .populate("requestedSkill", "skillName")
     .populate("offeredSkill", "skillName")
@@ -61,15 +69,12 @@ export const updateExchangeStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
   const { id } = req.params;
 
-  const exchange = await Exchange.findById(id)
-    .populate("requestedSkill")
-    .populate("offeredSkill");
+  const exchange = await Exchange.findById(id).populate("requestedSkill").populate("offeredSkill");
 
   if (!exchange) {
     throw new ApiError(404, "Exchange not found");
   }
 
- 
   if (exchange.receiver.toString() !== req.user._id.toString()) {
     throw new ApiError(403, "Unauthorized");
   }
@@ -77,9 +82,9 @@ export const updateExchangeStatus = asyncHandler(async (req, res) => {
   exchange.status = status;
   await exchange.save();
 
+  const io = getIO();
+
   if (status === "Accepted") {
-
-
     const existingSession = await Session.findOne({
       learner: exchange.requester,
       mentor: exchange.receiver,
@@ -88,24 +93,18 @@ export const updateExchangeStatus = asyncHandler(async (req, res) => {
 
     if (!existingSession) {
       await Session.create({
-        learner: exchange.requester,        // who requested
-        mentor: exchange.receiver,          // who teaches
+        learner: exchange.requester, // who requested
+        mentor: exchange.receiver, // who teaches
         skill: exchange.requestedSkill._id, // requested skill
-
-        date: new Date(),        
-        time: "Flexible",        
-
+        date: new Date(),
+        time: "Flexible",
         mode: exchange.requestedSkill.mode || "Online",
-
         status: "Pending",
-
         meetingLink: null,
         location: null,
       });
     }
 
-
-    
     await Session.create({
       learner: exchange.receiver,
       mentor: exchange.requester,
@@ -115,8 +114,19 @@ export const updateExchangeStatus = asyncHandler(async (req, res) => {
       mode: exchange.offeredSkill.mode || "Online",
       status: "Pending",
     });
+
+  //  Notify sender (requester)
+    notifyExchangeAccepted(exchange.requester, io);
+
+    //  Notify both about sessions
+    notifySessionCreated(exchange.requester, io);
+    notifySessionCreated(exchange.receiver, io);
   }
- 
+
+  
+  if (status === "Rejected") {
+    notifyExchangeRejected(exchange.requester, io);
+  }
 
   res.status(200).json({
     success: true,

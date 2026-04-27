@@ -4,7 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { getIO } from "../sockets/chat.socket.js";
-
+import { notifyNewMessage } from "../services/notification.service.js";
 
 export const getOrCreateConversation = asyncHandler(async (req, res) => {
   const { receiverId } = req.body;
@@ -21,7 +21,6 @@ export const getOrCreateConversation = asyncHandler(async (req, res) => {
 
   const members = [userId, receiverId].map(String).sort();
 
-
   let conversation = await Conversation.findOne({
     members: members,
   }).populate("members", "username email");
@@ -29,17 +28,17 @@ export const getOrCreateConversation = asyncHandler(async (req, res) => {
   if (!conversation) {
     try {
       conversation = await Conversation.create({
-        members: members, 
+        members: members,
       });
 
-      conversation = await Conversation.findById(conversation._id)
-        .populate("members", "username email");
-
+      conversation = await Conversation.findById(conversation._id).populate(
+        "members",
+        "username email"
+      );
     } catch (err) {
       if (err.code === 11000) {
         console.log("⚠️ Duplicate detected, fetching again");
 
-     
         conversation = await Conversation.findOne({
           members: members,
         }).populate("members", "username email");
@@ -54,16 +53,12 @@ export const getOrCreateConversation = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Conversation creation failed");
   }
 
-  return res.status(200).json(
-    new ApiResponse(200, conversation, "Conversation ready")
-  );
+  return res.status(200).json(new ApiResponse(200, conversation, "Conversation ready"));
 });
-
 
 export const sendMessage = asyncHandler(async (req, res) => {
   const { conversationId, text } = req.body;
 
- 
   if (!conversationId) {
     throw new ApiError(400, "Conversation ID is required");
   }
@@ -80,18 +75,13 @@ export const sendMessage = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Conversation not found");
   }
 
-  
-  const isMember = conversation.members.some(
-    (memberId) => String(memberId) === String(req.user._id)
-  );
+  const isMember = conversation.members.some(memberId => String(memberId) === String(req.user._id));
 
   if (!isMember) {
     throw new ApiError(403, "You are not part of this conversation");
   }
 
-  const receiverId = conversation.members.find(
-    (id) => String(id) !== String(req.user._id)
-  );
+  const receiverId = conversation.members.find(id => String(id) !== String(req.user._id));
 
   if (!receiverId) {
     throw new ApiError(400, "Receiver not found in conversation");
@@ -104,7 +94,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
     text: trimmedText,
   });
 
-  const now = new Date(); 
+  const now = new Date();
 
   conversation.lastMessage = {
     text: trimmedText,
@@ -114,37 +104,35 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   conversation.lastMessageAt = now;
 
-  
   conversation.updatedAt = now;
 
   await conversation.save();
-
 
   const populatedMessage = await Message.findById(message._id)
     .populate("sender", "username")
     .populate("receiver", "username");
 
- 
   try {
     const io = getIO();
 
     if (io) {
-      io.to(String(receiverId)).emit("getMessage", populatedMessage);
-      io.to(String(req.user._id)).emit("getMessage", populatedMessage);
+      io.to(String(receiverId)).emit("receiveMessage", {
+        _id: populatedMessage._id,
+        senderId: populatedMessage.sender._id,
+        text: populatedMessage.text,
+        conversationId: populatedMessage.conversationId,
+        createdAt: populatedMessage.createdAt,
+      });
+      // io.to(String(req.user._id)).emit("getMessage", populatedMessage);
     }
+    //  Notify receiver
+    notifyNewMessage(receiverId, req.user.username, trimmedText, conversationId, io);
   } catch (err) {
-    console.log("Socket emit error:", err.message);
+    console.log("Socket/Notification error:", err.message);
   }
 
-  return res.status(201).json(
-    new ApiResponse(
-      201,
-      populatedMessage,
-      "Message sent successfully"
-    )
-  );
+  return res.status(201).json(new ApiResponse(201, populatedMessage, "Message sent successfully"));
 });
-
 
 export const getMessages = asyncHandler(async (req, res) => {
   const { id: conversationId } = req.params;
@@ -153,51 +141,43 @@ export const getMessages = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Conversation ID is required");
   }
 
- 
   const conversation = await Conversation.findById(conversationId);
 
   if (!conversation) {
     throw new ApiError(404, "Conversation not found");
   }
 
-
   if (!conversation.members.some(m => String(m) === String(req.user._id))) {
     throw new ApiError(403, "You are not authorized to view messages");
   }
-
 
   const messages = await Message.find({ conversationId })
     .populate("sender", "username")
     .sort({ createdAt: 1 });
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, messages, "Messages fetched successfully"));
+  return res.status(200).json(new ApiResponse(200, messages, "Messages fetched successfully"));
 });
-
 
 export const getUserConversations = async (req, res) => {
   try {
     const userId = req.user._id;
 
     const conversations = await Conversation.find({
-      members: req.user._id, 
+      members: req.user._id,
     })
-      .populate("members", "username email avatar") 
-      .populate("skill", "title") 
+      .populate("members", "username email avatar")
+      .populate("skill", "title")
       .sort({ updatedAt: -1 });
 
-    const formatted = conversations.map((conv) => {
-      const otherUser = conv.members.find(
-        (m) => String(m._id) !== String(userId)
-      );
+    const formatted = conversations.map(conv => {
+      const otherUser = conv.members.find(m => String(m._id) !== String(userId));
 
       return {
-        _id: String(conv._id), 
+        _id: String(conv._id),
 
         otherUser: otherUser
           ? {
-              _id: String(otherUser._id), 
+              _id: String(otherUser._id),
               username: otherUser.username || "Unknown",
               avatar: otherUser.avatar || null,
             }
@@ -207,14 +187,11 @@ export const getUserConversations = async (req, res) => {
               avatar: null,
             },
 
-      
         lastMessage: conv.lastMessage || { text: "Start chatting..." },
 
-       
         skill: conv.skill || null,
 
-        
-        members: conv.members.map((m) => String(m._id)),
+        members: conv.members.map(m => String(m._id)),
 
         updatedAt: conv.updatedAt,
       };
@@ -222,9 +199,8 @@ export const getUserConversations = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      conversations: formatted, 
+      conversations: formatted,
     });
-
   } catch (error) {
     console.error("getUserConversations error:", error);
     throw new ApiError(500, "Failed to fetch conversations");
